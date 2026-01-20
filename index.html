@@ -128,7 +128,7 @@ button:active{transform:scale(.97)}
 .role{font-size:10px;opacity:.6}
 .handle a{color:#fff;text-decoration:none;font-weight:600}
 
-/* ===== AVISO INSTALACIÓN (NUEVO) ===== */
+/* ===== AVISO INSTALACIÓN PRO ===== */
 #installModal{
   position:fixed;
   inset:0;
@@ -138,26 +138,24 @@ button:active{transform:scale(.97)}
   align-items:center;
   z-index:9999;
 }
-.install-box{
+.install-card{
   background:#fff;
-  color:#000;
-  width:90%;
-  max-width:320px;
-  border-radius:20px;
-  padding:20px;
+  color:#222;
+  width:92%;
+  max-width:360px;
+  border-radius:22px;
+  padding:22px;
   text-align:center;
 }
-.install-box h3{margin-top:0}
-.install-box p{font-size:14px;color:#444}
-.install-box button{
-  margin-top:14px;
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:14px;
-  background:#5c2d91;
-  color:#fff;
-  font-weight:600;
+.install-card h3{margin:0;color:#21c7b7}
+.install-sub{font-size:14px;margin:10px 0 16px}
+.install-steps{text-align:left;font-size:14px;line-height:1.6}
+.install-img{margin:16px 0;display:flex;justify-content:center}
+.install-img img{width:180px;border-radius:14px}
+.install-note{font-size:12px;color:#666;margin-top:10px}
+.install-btn{
+  margin-top:16px;width:100%;padding:12px;border:none;border-radius:14px;
+  background:#25D366;color:#fff;font-weight:600
 }
 </style>
 </head>
@@ -193,13 +191,7 @@ button:active{transform:scale(.97)}
 <button id="execute">BANEAR</button>
 
 <div class="loader" id="loader"></div>
-
-<div class="console" id="console">
-&gt; iniciando proceso...<br>
-&gt; conectando...<br>
-&gt; verificando número...<br>
-&gt; ejecutando acción...
-</div>
+<div class="console" id="console"></div>
 
 <div class="footer">
 <b>📲 REDES SOCIALES</b>
@@ -254,18 +246,35 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<!-- AVISO INSTALACIÓN -->
+<!-- MODAL INSTALACIÓN -->
 <div id="installModal">
-  <div class="install-box">
-    <h3>📲 Instalar aplicación</h3>
-    <p id="installText"></p>
-    <button onclick="closeInstall()">Entendido</button>
+  <div class="install-card">
+    <h3>TIPS DE INSTALACIÓN</h3>
+    <div class="install-sub">⚡ Solo 3 pasos para instalar la app</div>
+
+    <div id="installSteps" class="install-steps"></div>
+
+    <!-- 🔴 CAMBIA ESTA IMAGEN -->
+    <div class="install-img">
+      <img src="install-preview.png">
+    </div>
+
+    <div class="install-note" id="installNote"></div>
+
+    <button class="install-btn" onclick="closeInstall()">Necesito Ayuda</button>
   </div>
 </div>
 
 <audio id="okAudio" src="ok.mp3" preload="auto"></audio>
 
 <script>
+/* FIX ZOOM iOS */
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => {
+  if(e.scale !== 1) e.preventDefault();
+},{ passive:false });
+
+/* PANEL */
 const execute=document.getElementById("execute");
 const loader=document.getElementById("loader");
 const consoleBox=document.getElementById("console");
@@ -278,59 +287,64 @@ const okAudio=document.getElementById("okAudio");
 
 let step=0,lastNumber="";
 
-execute.addEventListener("click",()=>{
+execute.onclick=()=>{
   if(!numero.value.trim())return;
   lastNumber=pais.value+" "+numero.value.trim();
   loader.style.display="block";
   consoleBox.style.display="block";
+  consoleBox.innerHTML="> Iniciando proceso...";
   setTimeout(()=>{
     loader.style.display="none";
-    modalText.textContent=`¿QUIERES CONTINUAR?\n\n📱 ${lastNumber}\n\nPRESIONE OK PARA CONTINUAR`;
+    modalText.textContent=`¿QUIERES CONTINUAR?\n\n📱 ${lastNumber}`;
     modal.classList.add("show");
     step=1;
-  },700);
-});
+  },1200);
+};
 
-okBtn.addEventListener("click",()=>{
+okBtn.onclick=()=>{
   if(step===1){
-    modalText.textContent=`✅ OPERACIÓN COMPLETADA\n\n${lastNumber}\n\nPROCESO FINALIZADO.`;
-    okAudio.currentTime=0; okAudio.play();
+    modalText.textContent=`✅ OPERACIÓN COMPLETADA\n\n${lastNumber}`;
+    okAudio.play();
     okBtn.textContent="CERRAR";
     step=2;
-  }else{
-    location.reload();
-  }
-});
-</script>
+  }else location.reload();
+};
 
-<script>
+/* INSTALACIÓN */
 function isInstalled(){
   return window.matchMedia('(display-mode: standalone)').matches
       || window.navigator.standalone === true;
 }
 function closeInstall(){
   localStorage.setItem("installSeen","1");
-  document.getElementById("installModal").style.display="none";
+  installModal.style.display="none";
 }
-window.addEventListener("load",()=>{
+
+window.onload=()=>{
   if(isInstalled()) return;
   if(localStorage.getItem("installSeen")) return;
 
   const ua=navigator.userAgent.toLowerCase();
-  const modal=document.getElementById("installModal");
-  const text=document.getElementById("installText");
 
   if(/iphone|ipad|ipod/.test(ua)){
-    text.innerHTML="1️⃣ Toca <b>Compartir</b><br>2️⃣ <b>Agregar a inicio</b><br>3️⃣ Aceptar";
-    modal.style.display="flex";
+    installSteps.innerHTML=
+    `1. En Safari toca <b>Compartir</b> ⬆️<br>
+     2. Selecciona <b>Agregar a inicio</b><br>
+     3. Presiona <b>Aceptar</b>`;
+    installNote.innerHTML=
+    `Nota: iPhone permite instalar la app varias veces. Mantén solo una.`;
+    installModal.style.display="flex";
   }else if(/android/.test(ua)){
-    text.innerHTML="1️⃣ Toca el menú ⋮<br>2️⃣ <b>Agregar a pantalla de inicio</b>";
-    modal.style.display="flex";
+    installSteps.innerHTML=
+    `1. Toca los <b>tres puntos</b> ⋮<br>
+     2. <b>Agregar a pantalla principal</b><br>
+     3. <b>Instalar</b>`;
+    installNote.innerHTML=
+    `Si no aparece la opción, usa Chrome o Brave.`;
+    installModal.style.display="flex";
   }
-});
-</script>
+};
 
-<script>
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("service-worker.js");
 }
