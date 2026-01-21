@@ -13,7 +13,11 @@
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Inter,system-ui;
@@ -29,17 +33,19 @@ body{
   position:fixed; inset:0;
   width:100%; height:100%;
   object-fit:cover;
-  filter:blur(8px);
-  opacity:.5;
+  filter:blur(10px);
+  opacity:.55;
   z-index:-1;
 }
 .panel{
   width:90%; max-width:360px;
   padding:26px 22px;
   border-radius:28px;
-  background:rgba(0,0,0,.25);
+  background:rgba(0,0,0,.22);
   backdrop-filter:blur(18px);
   border:1px solid rgba(255,255,255,.12);
+  position:relative;
+  box-shadow:0 0 60px rgba(0,224,255,.08);
 }
 h1{text-align:center;margin:0;letter-spacing:1px}
 .subtitle{text-align:center;font-size:12px;opacity:.7;margin-bottom:18px}
@@ -93,14 +99,17 @@ button:active{transform:scale(.97)}
   position:fixed;inset:0;
   background:rgba(0,0,0,.45);
   display:flex;justify-content:center;align-items:center;
-  opacity:0;pointer-events:none;transition:.2s
+  opacity:0;pointer-events:none;transition:.2s;
+  z-index:9998;
 }
 .modal.show{opacity:1;pointer-events:auto}
 .modal-box{
   width:90%;max-width:320px;
-  background:rgba(0,0,0,.25);
-  backdrop-filter:blur(14px);
-  border-radius:22px;padding:22px;text-align:center
+  background:rgba(0,0,0,.28);
+  backdrop-filter:blur(16px);
+  border-radius:22px;padding:22px;text-align:center;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 40px rgba(0,224,255,.08);
 }
 .modal-box p{white-space:pre-line;font-size:14px}
 
@@ -109,12 +118,24 @@ button:active{transform:scale(.97)}
 .footer b{font-size:12px}
 .social{
   margin-top:16px;
-  display:flex;flex-direction:column;gap:20px
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+
+  /* ✅ scroll cuando agregues más */
+  max-height:220px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-right:6px;
 }
+.social::-webkit-scrollbar{width:6px;}
+.social::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:10px;}
+
 .social-card{
   display:flex;justify-content:space-between;align-items:center;
-  padding:20px 18px;border-radius:24px;
-  background:rgba(0,0,0,.28)
+  padding:18px 16px;border-radius:24px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.10);
 }
 .contact-block{display:flex;align-items:center;gap:14px}
 .icon{
@@ -128,7 +149,7 @@ button:active{transform:scale(.97)}
 .role{font-size:10px;opacity:.6}
 .handle a{color:#fff;text-decoration:none;font-weight:600}
 
-/* ===== AVISO INSTALACIÓN PRO ===== */
+/* ===== AVISO INSTALACIÓN ===== */
 #installModal{
   position:fixed;
   inset:0;
@@ -157,6 +178,150 @@ button:active{transform:scale(.97)}
   margin-top:16px;width:100%;padding:12px;border:none;border-radius:14px;
   background:#25D366;color:#fff;font-weight:600
 }
+
+/* ===== TOP BAR BUTTONS ===== */
+.top-left, .top-right{
+  position:absolute;
+  top:14px;
+  z-index:5;
+}
+.top-left{ left:14px; }
+.top-right{ right:14px; }
+
+.icon-btn{
+  width:44px;height:44px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.28);
+  backdrop-filter:blur(14px);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  user-select:none;
+}
+.icon-btn:active{ transform:scale(.97); }
+
+/* ===== MENU MODAL (HAMBURGER) ===== */
+#menuModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  justify-content:center;
+  align-items:flex-start;
+  padding-top:80px;
+  z-index:9997;
+}
+.menu-card{
+  width:92%;
+  max-width:360px;
+  border-radius:22px;
+  padding:18px;
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 50px rgba(123,63,228,.12);
+}
+.menu-title{
+  font-weight:900;
+  text-align:center;
+  margin-bottom:10px;
+  letter-spacing:1px;
+}
+.menu-close{
+  margin-top:12px;
+  width:100%;
+  background:#333;
+}
+.hr{
+  height:1px;
+  background:rgba(255,255,255,.12);
+  margin:12px 0;
+}
+
+/* Tools blocks inside menu */
+.tools{ display:none; }
+
+/* ✅ inputs más cortos en admin/owner */
+.tools input{
+  width:100%;
+  max-width:300px;
+  margin:6px auto 12px;
+  display:block;
+}
+
+.tools button{ width:100%; }
+
+.small{
+  font-size:12px;
+  opacity:.85;
+  text-align:center;
+  margin-top:10px;
+}
+
+/* ===== RECHARGE MODAL ===== */
+#rechargeModal .modal-box{
+  text-align:left;
+}
+.recharge-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.recharge-title{
+  font-weight:900;
+  font-size:16px;
+}
+.recharge-sub{ opacity:.85; margin-top:6px; }
+
+/* ✅ scroll cuando agregues más */
+.recharge-links{
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+
+  max-height:280px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-right:6px;
+}
+.recharge-links::-webkit-scrollbar{width:6px;}
+.recharge-links::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.18);
+  border-radius:10px;
+}
+
+.recharge-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 12px;
+  border-radius:16px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.12);
+  text-decoration:none;
+  color:#fff;
+}
+.recharge-link img{ width:18px; height:18px; }
+.recharge-link:active{ transform:scale(.99); }
+
+/* chips cyber */
+.badge-chip{
+  margin-left:auto;
+  opacity:.7;
+  font-size:12px;
+}
+
+/* ===== mini glow lines ===== */
+.glowline{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,224,255,.35),transparent);
+  margin:10px 0;
+}
 </style>
 </head>
 
@@ -165,77 +330,64 @@ button:active{transform:scale(.97)}
 <img src="fondo.jpg" id="bgImage">
 
 <div class="panel">
-<h1>PANEL MRX</h1>
-<div class="subtitle">BAN WHATSAPP</div>
 
-<div class="avatar"><img src="avatar.jpg"></div>
+  <!-- TOP LEFT: LOGOUT -->
+  <div class="top-left">
+    <div class="icon-btn" id="logoutBtn" title="Cerrar sesión">⎋</div>
+  </div>
 
-<label>PAÍS</label>
-<select id="pais">
-  <option value="+51" selected>🇵🇪 Perú</option>
-  <option value="+1">🇺🇸 USA</option>
-  <option value="+52">🇲🇽 México</option>
-  <option value="+54">🇦🇷 Argentina</option>
-  <option value="+55">🇧🇷 Brasil</option>
-  <option value="+56">🇨🇱 Chile</option>
-  <option value="+57">🇨🇴 Colombia</option>
-  <option value="+34">🇪🇸 España</option>
-  <option value="+44">🇬🇧 Reino Unido</option>
-  <option value="+49">🇩🇪 Alemania</option>
-  <option value="+33">🇫🇷 Francia</option>
-</select>
+  <!-- TOP RIGHT: HAMBURGER -->
+  <div class="top-right">
+    <div class="icon-btn" id="menuBtn" title="Menú">≡</div>
+  </div>
 
-<label>NÚMERO</label>
-<input type="tel" id="numero" placeholder="Ingresa el número" inputmode="numeric">
+  <h1>PANEL MRX</h1>
 
-<button id="execute">BANEAR</button>
+  <!-- Créditos arriba -->
+  <div id="creditsBox" style="margin-top:6px;text-align:center;font-size:13px;opacity:.85;">
+    💳 Créditos: <b id="creditsValue">0</b>
+  </div>
 
-<div class="loader" id="loader"></div>
-<div class="console" id="console"></div>
+  <div id="roleStatus" style="margin-top:4px;text-align:center;font-size:12px;opacity:.8;">
+    👤 Rol: <b id="roleValue">cargando...</b>
+  </div>
 
-<div class="footer">
-<b>📲 REDES SOCIALES</b>
+  <div class="glowline"></div>
 
-<div class="social">
+  <div class="subtitle">BAN WHATSAPP</div>
 
-<!-- DUEÑO -->
-<div class="social-card">
-  <div class="contact-block">
-    <div class="icon tg"><img src="telegram.png"></div>
-    <div class="contact-info">
-      <div class="role">DUEÑO OFICIAL</div>
-      <div class="handle"><a href="https://t.me/Dev_MRX00">@Dev_MRX00</a></div>
+  <div class="avatar"><img src="avatar.jpg"></div>
+
+  <label>PAÍS</label>
+  <select id="pais">
+    <option value="+51" selected>🇵🇪 Perú</option>
+    <option value="+1">🇺🇸 USA</option>
+    <option value="+52">🇲🇽 México</option>
+    <option value="+54">🇦🇷 Argentina</option>
+    <option value="+55">🇧🇷 Brasil</option>
+    <option value="+56">🇨🇱 Chile</option>
+    <option value="+57">🇨🇴 Colombia</option>
+    <option value="+34">🇪🇸 España</option>
+    <option value="+44">🇬🇧 Reino Unido</option>
+    <option value="+49">🇩🇪 Alemania</option>
+    <option value="+33">🇫🇷 Francia</option>
+  </select>
+
+  <label>NÚMERO</label>
+  <input type="tel" id="numero" placeholder="Ingresa el número" inputmode="numeric">
+
+  <button id="execute">BANEAR</button>
+
+  <div class="loader" id="loader"></div>
+  <div class="console" id="console"></div>
+
+  <div class="footer">
+    <b>📲 REDES SOCIALES</b>
+
+    <div class="social" id="socialList">
+      <!-- Se llena por JS -->
     </div>
   </div>
-  <div class="contact-block">
-    <div class="icon wa"><img src="whatsapp.png"></div>
-    <div class="contact-info">
-      <div class="role">DUEÑO OFICIAL</div>
-      <div class="handle"><a href="https://wa.me/51955912164">955 912 164</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN -->
-<div class="social-card">
-  <div class="contact-block">
-    <div class="icon tg"><img src="telegram.png"></div>
-    <div class="contact-info">
-      <div class="role">ADMIN OFICIAL</div>
-      <div class="handle"><a href="https://t.me/XAM_OFC">@XAM_OFC</a></div>
-    </div>
-  </div>
-  <div class="contact-block">
-    <div class="icon wa"><img src="whatsapp.png"></div>
-    <div class="contact-info">
-      <div class="role">ADMIN OFICIAL</div>
-      <div class="handle"><a href="https://wa.me/51927586412">927 586 412</a></div>
-    </div>
-  </div>
-</div>
-
-</div>
-</div>
 </div>
 
 <!-- MODAL PRINCIPAL -->
@@ -243,6 +395,84 @@ button:active{transform:scale(.97)}
   <div class="modal-box">
     <p id="modalText"></p>
     <button id="okBtn">OK</button>
+  </div>
+</div>
+
+<!-- MODAL RECARGA (SIN CRÉDITOS) -->
+<div class="modal" id="rechargeModal">
+  <div class="modal-box" style="position:relative;">
+    <div class="recharge-head">
+      <div class="recharge-title">❌ No tienes suficientes créditos</div>
+      <div style="opacity:.7;font-weight:700;">RECHARGE</div>
+    </div>
+
+    <div class="recharge-sub">Recarga con:</div>
+
+    <div class="recharge-links" id="rechargeList">
+      <!-- Se llena por JS -->
+    </div>
+
+    <button id="rechargeOk" style="margin-top:14px;width:100%;">CERRAR</button>
+  </div>
+</div>
+
+<!-- MODAL MENÚ (☰) -->
+<div id="menuModal">
+  <div class="menu-card">
+    <div class="menu-title">MENÚ</div>
+
+    <div style="text-align:center;font-size:12px;opacity:.85;">
+      💳 <b id="menuCredits">0</b> créditos • 👤 <b id="menuRole">user</b>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- OWNER TOOLS -->
+    <div class="tools" id="ownerTools">
+      <div style="text-align:center;font-weight:900;margin-bottom:10px;">
+        👑 PANEL OWNER
+        <span id="notifBadge" style="display:none;margin-left:8px;padding:2px 8px;border-radius:999px;background:#00e0ff;color:#000;font-size:12px;">0</span>
+      </div>
+
+      <input id="ownerEmail" type="email" placeholder="Correo del usuario">
+      <input id="ownerAmount" type="number" placeholder="Créditos (número)" inputmode="numeric">
+
+      <button id="ownerGiveBtn">DAR CRÉDITOS</button>
+
+      <button id="ownerRemoveBtn" style="margin-top:8px;background:linear-gradient(135deg,#ff3b3b,#7b3fe4);">
+        QUITAR CRÉDITOS
+      </button>
+
+      <button id="makeAdminBtn" style="margin-top:12px;background:linear-gradient(135deg,#00e0ff,#21c7b7);">
+        DAR ADMIN
+      </button>
+
+      <button id="removeAdminBtn" style="margin-top:8px;background:linear-gradient(135deg,#ffb000,#7b3fe4);">
+        QUITAR ADMIN
+      </button>
+
+      <button id="loadEventsBtn" style="margin-top:12px;background:#333;">
+        VER NOTIFICACIONES
+      </button>
+
+      <div id="eventsBox" style="margin-top:10px;font-family:monospace;font-size:12px;white-space:pre-line;max-height:160px;overflow:auto;"></div>
+
+      <div id="ownerMsg" class="small"></div>
+    </div>
+
+    <!-- ADMIN TOOLS -->
+    <div class="tools" id="adminTools">
+      <div style="text-align:center;font-weight:900;margin-bottom:10px;">🛠️ PANEL ADMIN</div>
+
+      <input id="adminEmail" type="email" placeholder="Correo del usuario">
+      <input id="adminAmount" type="number" placeholder="Créditos a dar" inputmode="numeric">
+
+      <button id="adminGiveBtn">DAR CRÉDITOS</button>
+
+      <div id="adminMsg" class="small"></div>
+    </div>
+
+    <button class="menu-close" id="closeMenuBtn">CERRAR</button>
   </div>
 </div>
 
@@ -254,7 +484,6 @@ button:active{transform:scale(.97)}
 
     <div id="installSteps" class="install-steps"></div>
 
-    <!-- 🔴 CAMBIA ESTA IMAGEN -->
     <div class="install-img">
       <img src="install-preview.png">
     </div>
@@ -268,49 +497,260 @@ button:active{transform:scale(.97)}
 <audio id="okAudio" src="ok.mp3" preload="auto"></audio>
 
 <script>
+/* =========================
+   ✅ EDITA AQUÍ (TUS 2 PERSONAS EXTRA)
+   ========================= */
+
+/* Recarga con (modal) — agregué 2 personas extra al final */
+const RECHARGE_CONTACTS = [
+  { type:"wa", title:"OWNER", subtitle:"955 912 164", link:"https://wa.me/51955912164", icon:"whatsapp.png" },
+  { type:"tg", title:"OWNER", subtitle:"@Dev_MRX00", link:"https://t.me/Dev_MRX00", icon:"telegram.png" },
+  { type:"tg", title:"SELLER", subtitle:"@XAM_OFC", link:"https://t.me/XAM_OFC", icon:"telegram.png" },
+
+  /* ✅ Persona extra 1 */
+  { type:"tg", title:"SELLER", subtitle:"@Soporte_MRX01", link:"https://t.me/Soporte_MRX01", icon:"telegram.png" },
+
+  /* ✅ Persona extra 2 */
+  { type:"tg", title:"SELLER", subtitle:"@Blackops_666", link:"https://t.me/Blackops_666", icon:"telegram.png" },
+];
+
+/* Redes sociales (abajo) — agregué 2 tarjetas extra */
+const SOCIAL_CARDS = [
+  {
+    left:  { type:"tg", label:"OWNER OFICIAL", value:"@Dev_MRX00", link:"https://t.me/Dev_MRX00" },
+    right: { type:"wa", label:"OWNER OFICIAL", value:"955 912 164", link:"https://wa.me/51955912164" }
+  },
+  {
+    left:  { type:"tg", label:"SELLER", value:"@XAM_OFC", link:"https://t.me/XAM_OFC" },
+    right: { type:"wa", label:"SELLER", value:"927 586 412", link:"https://wa.me/51927586412" }
+  },
+
+  /* ✅ Tarjeta extra 1 */
+  {
+    left:  { type:"tg", label:"SELLER", value:"@MRX_V2", link:"https://t.me/MRX_V2" },
+    right: { type:"wa", label:"SELLER", value:"953 064 458", link:"https://wa.me/+51953064458" }
+  },
+
+  /* ✅ Tarjeta extra 2 */
+  {
+    left:  { type:"tg", label:"SELLER", value:"@Blackops_666", link:"https://t.me/Blackops_666" },
+    right: { type:"wa", label:"SELLER", value:"901 111 111", link:"https://wa.me/51901111111" }
+  }
+];
+
+/* =========================
+   RENDER LISTS (NO TOCAR)
+   ========================= */
+
+function renderRecharge(){
+  const box = document.getElementById("rechargeList");
+  box.innerHTML = RECHARGE_CONTACTS.map(c => `
+    <a class="recharge-link" href="${c.link}" target="_blank" rel="noopener">
+      <img src="${c.icon}" alt="">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <b>${c.title}</b>
+        <span style="opacity:.85;font-size:12px;">${c.subtitle}</span>
+      </div>
+      <span class="badge-chip">Abrir</span>
+    </a>
+  `).join("");
+}
+
+function renderSocial(){
+  const box = document.getElementById("socialList");
+  const iconHtml = (type) => {
+    if(type === "wa") return `<div class="icon wa"><img src="whatsapp.png"></div>`;
+    return `<div class="icon tg"><img src="telegram.png"></div>`;
+  };
+
+  box.innerHTML = SOCIAL_CARDS.map(card => `
+    <div class="social-card">
+      <div class="contact-block">
+        ${iconHtml(card.left.type)}
+        <div class="contact-info">
+          <div class="role">${card.left.label}</div>
+          <div class="handle"><a href="${card.left.link}" target="_blank" rel="noopener">${card.left.value}</a></div>
+        </div>
+      </div>
+      <div class="contact-block">
+        ${iconHtml(card.right.type)}
+        <div class="contact-info">
+          <div class="role">${card.right.label}</div>
+          <div class="handle"><a href="${card.right.link}" target="_blank" rel="noopener">${card.right.value}</a></div>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+renderRecharge();
+renderSocial();
+
+/* ===== SUPABASE ===== */
+const { createClient } = window.supabase;
+
+const supabaseClient = createClient(
+  "https://ndoblzdqdycipbotwkaq.supabase.co",
+  "sb_publishable_61e0-7mYaVwMZ1v44uj77w_xpIdxiFk"
+);
+
+/* ===== AUTH GUARD ===== */
+(async ()=>{
+  const { data:{ session } } = await supabaseClient.auth.getSession();
+  if(!session){
+    location.replace("login.html");
+  } else {
+    await loadMyProfile();
+    await showToolsByRole();
+    await refreshNotifBadge();
+  }
+})();
+
+/* ===== UI HELPERS ===== */
+const modal=document.getElementById("modal");
+const modalText=document.getElementById("modalText");
+const okBtn=document.getElementById("okBtn");
+
+function showModal(text){
+  modalText.textContent = text;
+  okBtn.textContent = "OK";
+  modal.classList.add("show");
+}
+okBtn.onclick=()=> modal.classList.remove("show");
+
+/* Recharge modal */
+const rechargeModal = document.getElementById("rechargeModal");
+document.getElementById("rechargeOk").onclick = () => rechargeModal.classList.remove("show");
+function showRecharge(){ rechargeModal.classList.add("show"); }
+
+/* Menu modal */
+const menuModal = document.getElementById("menuModal");
+document.getElementById("menuBtn").onclick = () => { menuModal.style.display = "flex"; };
+document.getElementById("closeMenuBtn").onclick = () => { menuModal.style.display = "none"; };
+
+/* Logout */
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabaseClient.auth.signOut();
+  location.replace("login.html");
+};
+
 /* FIX ZOOM iOS */
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchmove', e => {
   if(e.scale !== 1) e.preventDefault();
 },{ passive:false });
 
-/* PANEL */
+/* ===== PROFILE: credits/role ===== */
+let MY_ROLE = "user";
+let MY_CREDITS = 0;
+
+async function loadMyProfile(){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("role, credits")
+    .eq("id", user.id)
+    .single();
+
+  if(error){
+    console.log("Error leyendo profile:", error);
+    document.getElementById("roleValue").textContent = "error";
+    document.getElementById("creditsValue").textContent = "0";
+    return;
+  }
+
+  MY_ROLE = (data?.role || "user");
+  MY_CREDITS = Number(data?.credits || 0);
+
+  document.getElementById("roleValue").textContent = MY_ROLE;
+  document.getElementById("creditsValue").textContent = String(MY_CREDITS);
+
+  // menu info
+  document.getElementById("menuRole").textContent = MY_ROLE;
+  document.getElementById("menuCredits").textContent = String(MY_CREDITS);
+}
+
+/* ===== SHOW TOOLS BY ROLE (IN MENU) ===== */
+async function showToolsByRole(){
+  if(!MY_ROLE) await loadMyProfile();
+
+  const ownerTools = document.getElementById("ownerTools");
+  const adminTools = document.getElementById("adminTools");
+
+  ownerTools.style.display = (MY_ROLE === "owner") ? "block" : "none";
+  adminTools.style.display = (MY_ROLE === "admin") ? "block" : "none";
+}
+
+/* ===== NOTIFICATIONS BADGE (OWNER) ===== */
+async function refreshNotifBadge(){
+  if(MY_ROLE !== "owner") return;
+
+  const lastSeen = Number(localStorage.getItem("eventsLastSeenId") || "0");
+  const { data, error } = await supabaseClient.rpc("get_recent_events", { p_limit: 50 });
+
+  if(error){
+    console.log("No puedo leer eventos:", error);
+    return;
+  }
+
+  const list = data || [];
+  const newCount = list.filter(e => Number(e.id) > lastSeen).length;
+  const badge = document.getElementById("notifBadge");
+
+  if(newCount > 0){
+    badge.textContent = String(newCount);
+    badge.style.display = "inline-block";
+  }else{
+    badge.style.display = "none";
+  }
+}
+
+/* ===== PANEL PRINCIPAL (ACCIÓN) ===== */
 const execute=document.getElementById("execute");
 const loader=document.getElementById("loader");
 const consoleBox=document.getElementById("console");
-const modal=document.getElementById("modal");
-const modalText=document.getElementById("modalText");
-const okBtn=document.getElementById("okBtn");
 const numero=document.getElementById("numero");
 const pais=document.getElementById("pais");
 const okAudio=document.getElementById("okAudio");
 
 let step=0,lastNumber="";
 
-execute.onclick=()=>{
-  if(!numero.value.trim())return;
+execute.onclick=async ()=>{
+  await loadMyProfile();
+  if(MY_CREDITS <= 0){
+    showRecharge();
+    return;
+  }
+
+  if(!numero.value.trim()) return;
+
   lastNumber=pais.value+" "+numero.value.trim();
   loader.style.display="block";
   consoleBox.style.display="block";
   consoleBox.innerHTML="> Iniciando proceso...";
+
   setTimeout(()=>{
     loader.style.display="none";
-    modalText.textContent=`¿QUIERES CONTINUAR?\n\n📱 ${lastNumber}`;
-    modal.classList.add("show");
+    showModal(`¿QUIERES CONTINUAR?\n\n📱 ${lastNumber}`);
     step=1;
   },1200);
 };
 
-okBtn.onclick=()=>{
+document.getElementById("okBtn").onclick=()=>{
   if(step===1){
     modalText.textContent=`✅ OPERACIÓN COMPLETADA\n\n${lastNumber}`;
     okAudio.play();
     okBtn.textContent="CERRAR";
     step=2;
-  }else location.reload();
+  }else{
+    modal.classList.remove("show");
+    location.reload();
+  }
 };
 
-/* INSTALACIÓN */
+/* ===== INSTALACIÓN ===== */
 function isInstalled(){
   return window.matchMedia('(display-mode: standalone)').matches
       || window.navigator.standalone === true;
@@ -319,7 +759,6 @@ function closeInstall(){
   localStorage.setItem("installSeen","1");
   installModal.style.display="none";
 }
-
 window.onload=()=>{
   if(isInstalled()) return;
   if(localStorage.getItem("installSeen")) return;
@@ -347,6 +786,184 @@ window.onload=()=>{
 
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("service-worker.js");
+}
+
+/* ===== ADMIN/OWNER ACTIONS (RPC) ===== */
+function cleanEmail(v){ return (v || "").trim().toLowerCase(); }
+function toInt(v){ return parseInt(String(v || "").trim(), 10); }
+
+/* Admin: dar créditos */
+const adminGiveBtn = document.getElementById("adminGiveBtn");
+if(adminGiveBtn){
+  adminGiveBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("adminEmail").value);
+    const amount = toInt(document.getElementById("adminAmount").value);
+    const msg = document.getElementById("adminMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+      if(!amount || amount <= 0) throw new Error("Cantidad inválida");
+
+      const { error } = await supabaseClient.rpc("give_credits_by_email", {
+        p_email: email,
+        p_amount: amount,
+        p_note: "venta/admin"
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Créditos enviados";
+      await loadMyProfile();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+/* Owner: dar créditos */
+const ownerGiveBtn = document.getElementById("ownerGiveBtn");
+if(ownerGiveBtn){
+  ownerGiveBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const amount = toInt(document.getElementById("ownerAmount").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+      if(!amount || amount <= 0) throw new Error("Cantidad inválida");
+
+      const { error } = await supabaseClient.rpc("give_credits_by_email", {
+        p_email: email,
+        p_amount: amount,
+        p_note: "venta/owner"
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Créditos enviados";
+      await refreshNotifBadge();
+      await loadMyProfile();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+/* Owner: quitar créditos */
+const ownerRemoveBtn = document.getElementById("ownerRemoveBtn");
+if(ownerRemoveBtn){
+  ownerRemoveBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const amount = toInt(document.getElementById("ownerAmount").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+      if(!amount || amount <= 0) throw new Error("Cantidad inválida");
+
+      const { error } = await supabaseClient.rpc("remove_credits_by_email", {
+        p_email: email,
+        p_amount: amount,
+        p_note: "ajuste/owner"
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Créditos quitados";
+      await refreshNotifBadge();
+      await loadMyProfile();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+/* Owner: dar/quitar admin */
+const makeAdminBtn = document.getElementById("makeAdminBtn");
+if(makeAdminBtn){
+  makeAdminBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+
+      const { error } = await supabaseClient.rpc("set_admin_by_email", {
+        p_email: email,
+        p_make_admin: true
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Ahora es ADMIN";
+      await refreshNotifBadge();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+const removeAdminBtn = document.getElementById("removeAdminBtn");
+if(removeAdminBtn){
+  removeAdminBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+
+      const { error } = await supabaseClient.rpc("set_admin_by_email", {
+        p_email: email,
+        p_make_admin: false
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Admin quitado (vuelve a USER)";
+      await refreshNotifBadge();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+/* Owner: ver notificaciones */
+const loadEventsBtn = document.getElementById("loadEventsBtn");
+if(loadEventsBtn){
+  loadEventsBtn.onclick = async () => {
+    const box = document.getElementById("eventsBox");
+    box.textContent = "Cargando...";
+
+    const { data, error } = await supabaseClient.rpc("get_recent_events", { p_limit: 30 });
+    if(error){
+      box.textContent = "❌ " + (error.message || "Error");
+      return;
+    }
+
+    const list = data || [];
+    if(list.length === 0){
+      box.textContent = "Sin notificaciones aún.";
+      return;
+    }
+
+    localStorage.setItem("eventsLastSeenId", String(list[0].id));
+    await refreshNotifBadge();
+
+    const mapType = (t) => {
+      if(t === "CREDIT_ADD") return "➕ Créditos";
+      if(t === "CREDIT_REMOVE") return "➖ Créditos";
+      if(t === "MAKE_ADMIN") return "👑 Dar admin";
+      if(t === "REMOVE_ADMIN") return "❌ Quitar admin";
+      return t;
+    };
+
+    box.textContent = list.map(e => {
+      const when = new Date(e.created_at).toLocaleString();
+      const amt = (e.amount == null) ? "" : ` (${e.amount})`;
+      const actor = e.actor_email ? ` | ${e.actor_email}` : "";
+      return `${mapType(e.event_type)}${amt} → ${e.target_email || ""}${actor}\n${when}\n`;
+    }).join("\n");
+  };
 }
 </script>
 
