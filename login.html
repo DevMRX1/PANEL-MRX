@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LOGIN MRX</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  height:100vh;
+  font-family:Inter,system-ui;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+  overflow:hidden;
+}
+
+/* FONDO CYBER */
+.bg{
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 20%,#00e0ff33,transparent 40%),
+    radial-gradient(circle at 80% 80%,#7b3fe433,transparent 40%);
+  filter:blur(50px);
+  z-index:-1;
+}
+
+/* TARJETA */
+.card{
+  width:90%;
+  max-width:360px;
+  padding:30px 24px;
+  border-radius:28px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(22px);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 80px rgba(0,224,255,.15);
+}
+
+/* TITULO */
+.card h1{
+  margin:0;
+  text-align:center;
+  letter-spacing:2px;
+}
+
+/* AVATAR */
+.avatar{
+  display:flex;
+  justify-content:center;
+  margin:18px 0 24px;
+}
+.avatar img{
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #00e0ff;
+  box-shadow:0 0 35px #00e0ff;
+}
+
+/* INPUTS */
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(0,0,0,.45);
+  color:#fff;
+  font-size:15px;
+  outline:none;
+}
+input::placeholder{color:#aaa}
+
+/* BOTONES */
+button{
+  width:100%;
+  padding:14px;
+  border-radius:22px;
+  border:none;
+  background:linear-gradient(135deg,#00e0ff,#7b3fe4);
+  color:#fff;
+  font-weight:700;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:.2s;
+}
+button:active{transform:scale(.96)}
+
+.btn-alt{
+  margin-top:10px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.25);
+}
+
+/* MENSAJE */
+.msg{
+  margin-top:14px;
+  font-size:13px;
+  text-align:center;
+  min-height:18px;
+  opacity:.8;
+}
+
+/* FOOTER */
+.footer{
+  margin-top:22px;
+  text-align:center;
+  font-size:11px;
+  opacity:.5;
+}
+
+.footer{
+  margin-top:22px;
+  text-align:center;
+}
+
+.help-title{
+  font-size:12px;
+  opacity:.7;
+  margin-bottom:12px;
+}
+
+.contact-links{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+}
+
+.contact{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:14px;
+  font-size:12px;
+  text-decoration:none;
+  color:#fff;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  transition:.2s;
+}
+
+.contact img{
+  width:18px;
+  height:18px;
+}
+
+.contact:hover{
+  transform:scale(1.05);
+}
+
+.contact.whatsapp{
+  box-shadow:0 0 12px rgba(37,211,102,.4);
+}
+
+.contact.telegram{
+  box-shadow:0 0 12px rgba(0,136,204,.4);
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="card">
+  <h1>LOGIN MRX</h1>
+
+  <!-- 🔴 IMAGEN CIRCULAR -->
+  <div class="avatar">
+    <img src="login-avatar1.png">
+  </div>
+
+  <input id="email" type="email" placeholder="Correo electrónico">
+  <input id="password" type="password" placeholder="Contraseña">
+
+  <button onclick="login()">ENTRAR</button>
+  <button class="btn-alt" onclick="register()">CREAR CUENTA</button>
+
+  <div class="msg" id="msg"></div>
+
+<div class="footer">
+  <div class="help-title">¿Problemas? Contáctame</div>
+
+  <div class="contact-links">
+    <a href="https://wa.me/51955912164" target="_blank" class="contact whatsapp">
+      <img src="whatsapp.png">
+      <span>955 912 164</span>
+    </a>
+
+    <a href="https://t.me/Dev_MRX00" target="_blank" class="contact telegram">
+      <img src="telegram.png">
+      <span>@Dev_MRX00</span>
+    </a>
+  </div>
+</div>
+
+<script>
+const { createClient } = window.supabase;
+
+const supabaseClient = createClient(
+  "https://ndoblzdqdycipbotwkaq.supabase.co",
+  "sb_publishable_61e0-7mYaVwMZ1v44uj77w_xpIdxiFk"
+);
+
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const msg = document.getElementById("msg");
+
+function clean(value){
+  return value.trim().toLowerCase();
+}
+
+async function login(){
+  const email = clean(emailInput.value);
+  const password = passwordInput.value.trim();
+
+  if(!email || !password){
+    msg.innerText = "Completa todos los campos";
+    return;
+  }
+
+  msg.innerText = "Conectando...";
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if(error){
+    msg.innerText = error.message;
+  }else{
+    location.href = "index.html";
+  }
+}
+
+async function register(){
+  const email = clean(emailInput.value);
+  const password = passwordInput.value.trim();
+
+  if(!email || !password){
+    msg.innerText = "Completa todos los campos";
+    return;
+  }
+
+  if(password.length < 6){
+    msg.innerText = "La contraseña debe tener mínimo 6 caracteres";
+    return;
+  }
+
+  msg.innerText = "Creando cuenta...";
+
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if(error){
+    msg.innerText = error.message;
+  }else{
+    msg.innerText = "Cuenta creada. Ahora inicia sesión.";
+  }
+}
+</script>
+
+</body>
+</html>
