@@ -149,36 +149,6 @@ button:active{transform:scale(.97)}
 .role{font-size:10px;opacity:.6}
 .handle a{color:#fff;text-decoration:none;font-weight:600}
 
-/* ===== AVISO INSTALACIÓN ===== */
-#installModal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.65);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-}
-.install-card{
-  background:#fff;
-  color:#222;
-  width:92%;
-  max-width:360px;
-  border-radius:22px;
-  padding:22px;
-  text-align:center;
-}
-.install-card h3{margin:0;color:#21c7b7}
-.install-sub{font-size:14px;margin:10px 0 16px}
-.install-steps{text-align:left;font-size:14px;line-height:1.6}
-.install-img{margin:16px 0;display:flex;justify-content:center}
-.install-img img{width:180px;border-radius:14px}
-.install-note{font-size:12px;color:#666;margin-top:10px}
-.install-btn{
-  margin-top:16px;width:100%;padding:12px;border:none;border-radius:14px;
-  background:#25D366;color:#fff;font-weight:600
-}
-
 /* ===== TOP BAR BUTTONS ===== */
 .top-left, .top-right{
   position:absolute;
@@ -403,7 +373,6 @@ button:active{transform:scale(.97)}
   <div class="modal-box" style="position:relative;">
     <div class="recharge-head">
       <div class="recharge-title">❌ No tienes suficientes créditos</div>
-      <div style="opacity:.7;font-weight:700;">RECHARGE</div>
     </div>
 
     <div class="recharge-sub">Recarga con:</div>
@@ -476,24 +445,6 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<!-- MODAL INSTALACIÓN -->
-<div id="installModal">
-  <div class="install-card">
-    <h3>TIPS DE INSTALACIÓN</h3>
-    <div class="install-sub">⚡ Solo 3 pasos para instalar la app</div>
-
-    <div id="installSteps" class="install-steps"></div>
-
-    <div class="install-img">
-      <img src="install-preview.png">
-    </div>
-
-    <div class="install-note" id="installNote"></div>
-
-    <button class="install-btn" onclick="closeInstall()">Necesito Ayuda</button>
-  </div>
-</div>
-
 <audio id="okAudio" src="ok.mp3" preload="auto"></audio>
 
 <script>
@@ -504,37 +455,14 @@ button:active{transform:scale(.97)}
 /* Recarga con (modal) — agregué 2 personas extra al final */
 const RECHARGE_CONTACTS = [
   { type:"wa", title:"OWNER", subtitle:"955 912 164", link:"https://wa.me/51955912164", icon:"whatsapp.png" },
-  { type:"tg", title:"OWNER", subtitle:"@Dev_MRX00", link:"https://t.me/Dev_MRX00", icon:"telegram.png" },
-  { type:"tg", title:"SELLER", subtitle:"@XAM_OFC", link:"https://t.me/XAM_OFC", icon:"telegram.png" },
-
-  /* ✅ Persona extra 1 */
-  { type:"tg", title:"SELLER", subtitle:"@Soporte_MRX01", link:"https://t.me/Soporte_MRX01", icon:"telegram.png" },
-
-  /* ✅ Persona extra 2 */
-  { type:"tg", title:"SELLER", subtitle:"@Blackops_666", link:"https://t.me/Blackops_666", icon:"telegram.png" },
+  { type:"tg", title:"OWNER", subtitle:"@Dev_MRX00", link:"https://t.me/Dev_MRX00", icon:"telegram.png" }
 ];
 
 /* Redes sociales (abajo) — agregué 2 tarjetas extra */
 const SOCIAL_CARDS = [
   {
-    left:  { type:"tg", label:"OWNER OFICIAL", value:"@Dev_MRX00", link:"https://t.me/Dev_MRX00" },
-    right: { type:"wa", label:"OWNER OFICIAL", value:"955 912 164", link:"https://wa.me/51955912164" }
-  },
-  {
-    left:  { type:"tg", label:"SELLER", value:"@XAM_OFC", link:"https://t.me/XAM_OFC" },
-    right: { type:"wa", label:"SELLER", value:"927 586 412", link:"https://wa.me/51927586412" }
-  },
-
-  /* ✅ Tarjeta extra 1 */
-  {
-    left:  { type:"tg", label:"SELLER", value:"@MRX_V2", link:"https://t.me/MRX_V2" },
-    right: { type:"wa", label:"SELLER", value:"953 064 458", link:"https://wa.me/+51953064458" }
-  },
-
-  /* ✅ Tarjeta extra 2 */
-  {
-    left:  { type:"tg", label:"SELLER", value:"@Blackops_666", link:"https://t.me/Blackops_666" },
-    right: { type:"wa", label:"SELLER", value:"901 111 111", link:"https://wa.me/51901111111" }
+    left:  { type:"tg", label:"TELEGRAM", value:"@Dev_MRX00", link:"https://t.me/Dev_MRX00" },
+    right: { type:"wa", label:"WHATSAPP", value:"955 912 164", link:"https://wa.me/51955912164" }
   }
 ];
 
@@ -750,40 +678,6 @@ document.getElementById("okBtn").onclick=()=>{
   }
 };
 
-/* ===== INSTALACIÓN ===== */
-function isInstalled(){
-  return window.matchMedia('(display-mode: standalone)').matches
-      || window.navigator.standalone === true;
-}
-function closeInstall(){
-  localStorage.setItem("installSeen","1");
-  installModal.style.display="none";
-}
-window.onload=()=>{
-  if(isInstalled()) return;
-  if(localStorage.getItem("installSeen")) return;
-
-  const ua=navigator.userAgent.toLowerCase();
-
-  if(/iphone|ipad|ipod/.test(ua)){
-    installSteps.innerHTML=
-    `1. En Safari toca <b>Compartir</b> ⬆️<br>
-     2. Selecciona <b>Agregar a inicio</b><br>
-     3. Presiona <b>Aceptar</b>`;
-    installNote.innerHTML=
-    `Nota: iPhone permite instalar la app varias veces. Mantén solo una.`;
-    installModal.style.display="flex";
-  }else if(/android/.test(ua)){
-    installSteps.innerHTML=
-    `1. Toca los <b>tres puntos</b> ⋮<br>
-     2. <b>Agregar a pantalla principal</b><br>
-     3. <b>Instalar</b>`;
-    installNote.innerHTML=
-    `Si no aparece la opción, usa Chrome o Brave.`;
-    installModal.style.display="flex";
-  }
-};
-
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("service-worker.js");
 }
@@ -965,6 +859,9 @@ if(loadEventsBtn){
     }).join("\n");
   };
 }
+
+
+
 </script>
 
 </body>
