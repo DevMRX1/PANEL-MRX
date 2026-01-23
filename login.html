@@ -2,7 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- ✅ VIEWPORT iOS PWA + Safe area -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
 <title>LOGIN MRX</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -10,9 +13,19 @@
 <style>
 *{box-sizing:border-box}
 
+/* ✅ iOS: permitir fill-available */
+html{ height: -webkit-fill-available; }
+
+/* ✅ evita rebote raro */
+html, body{
+  height: 100%;
+  overscroll-behavior: none;
+}
+
 body{
   margin:0;
-  height:100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   font-family:Inter,system-ui;
   background:#000;
   display:flex;
@@ -20,6 +33,12 @@ body{
   align-items:center;
   color:#fff;
   overflow:hidden;
+
+  /* ✅ Safe area iPhone */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* FONDO CYBER */
@@ -117,11 +136,6 @@ button:active{transform:scale(.96)}
   text-align:center;
   font-size:11px;
   opacity:.5;
-}
-
-.footer{
-  margin-top:22px;
-  text-align:center;
 }
 
 .help-title{
@@ -390,20 +404,20 @@ button:active{transform:scale(.96)}
       <div class="welcome-note">
         Para obtener CREDITO en la App. Comunícate con nosotros de immediato para brindarte asesoría.
       </div>
-		
-		<div class="welcome-help">
-  CUALQUIER DUDA A - <a class="tg-link" target="_blank" rel="noopener" href="https://t.me/Dev_MRX00">T.ME/Dev_MRX00</a>
-</div>
 
-<div class="welcome-icons">
-  <a class="welcome-icon" href="https://t.me/Dev_MRX00" target="_blank" rel="noopener" aria-label="Telegram">
-    <img src="telegram.png" alt="Telegram">
-  </a>
+      <div class="welcome-help">
+        CUALQUIER DUDA A - <a class="tg-link" target="_blank" rel="noopener" href="https://t.me/Dev_MRX00">T.ME/Dev_MRX00</a>
+      </div>
 
-  <a class="welcome-icon" href="https://wa.me/51955912164" target="_blank" rel="noopener" aria-label="WhatsApp">
-    <img src="whatsapp.png" alt="WhatsApp">
-  </a>
-</div>
+      <div class="welcome-icons">
+        <a class="welcome-icon" href="https://t.me/Dev_MRX00" target="_blank" rel="noopener" aria-label="Telegram">
+          <img src="telegram.png" alt="Telegram">
+        </a>
+
+        <a class="welcome-icon" href="https://wa.me/51955912164" target="_blank" rel="noopener" aria-label="WhatsApp">
+          <img src="whatsapp.png" alt="WhatsApp">
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -531,9 +545,6 @@ function showWelcomeModalOnce(){
   };
 }
 
-/* ✅ IMPORTANTÍSIMO:
-   No uses window.onload = ... porque ya lo estabas usando.
-   Mejor usamos addEventListener para que NO se pisen. */
 window.addEventListener("load", () => {
   // Instalación Android/iOS (solo si NO está instalada)
   if(!isInstalled() && !localStorage.getItem("installSeen")){
