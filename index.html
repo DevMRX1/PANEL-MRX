@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 
 <!-- VIEWPORT -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,6 +44,10 @@ body{
   min-height:100vh;
   background:#000;
   overflow:hidden;
+
+  /* ✅ Safe Area iPhone */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 #bgImage{
   position:fixed; inset:0;
