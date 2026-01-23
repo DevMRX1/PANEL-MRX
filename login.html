@@ -2,413 +2,519 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LOGIN MRX</title>
 
+<!-- FIX ZOOM iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>PANEL MRX</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 *{box-sizing:border-box}
-
 body{
   margin:0;
-  height:100vh;
   font-family:Inter,system-ui;
-  background:#000;
+  color:#fff;
   display:flex;
   justify-content:center;
   align-items:center;
-  color:#fff;
+  min-height:100vh;
+  background:#000;
   overflow:hidden;
 }
-
-/* FONDO CYBER */
-.bg{
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at 20% 20%,#00e0ff33,transparent 40%),
-    radial-gradient(circle at 80% 80%,#7b3fe433,transparent 40%);
-  filter:blur(50px);
+#bgImage{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  filter:blur(10px);
+  opacity:.55;
   z-index:-1;
 }
-
-/* TARJETA */
-.card{
-  width:90%;
-  max-width:360px;
-  padding:30px 24px;
+.panel{
+  width:90%; max-width:360px;
+  padding:26px 22px;
   border-radius:28px;
-  background:rgba(255,255,255,.06);
-  backdrop-filter:blur(22px);
+  background:rgba(0,0,0,.22);
+  backdrop-filter:blur(18px);
   border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 0 80px rgba(0,224,255,.15);
+  position:relative;
+  box-shadow:0 0 60px rgba(0,224,255,.08);
 }
-
-/* TITULO */
-.card h1{
-  margin:0;
-  text-align:center;
-  letter-spacing:2px;
-}
-
-/* AVATAR */
-.avatar{
-  display:flex;
-  justify-content:center;
-  margin:18px 0 24px;
-}
+h1{text-align:center;margin:0;letter-spacing:1px}
+.subtitle{text-align:center;font-size:12px;opacity:.7;margin-bottom:18px}
+.avatar{display:flex;justify-content:center;margin-bottom:18px}
 .avatar img{
-  width:100px;
-  height:100px;
-  border-radius:50%;
-  object-fit:cover;
+  width:96px;height:96px;border-radius:50%;
   border:2px solid #00e0ff;
-  box-shadow:0 0 35px #00e0ff;
+  box-shadow:0 0 25px #00e0ff
 }
-
-/* INPUTS */
-input{
-  width:100%;
-  padding:14px;
-  margin-bottom:14px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.15);
-  background:rgba(0,0,0,.45);
+label{font-size:12px;opacity:.8}
+select,input{
+  width:80%;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.3);
   color:#fff;
-  font-size:15px;
-  outline:none;
+  margin:6px auto 14px;
+  display:block;
+  font-size:16px;
 }
-input::placeholder{color:#aaa}
-
-/* BOTONES */
 button{
-  width:100%;
+  width:90%;
   padding:14px;
   border-radius:22px;
   border:none;
   background:linear-gradient(135deg,#00e0ff,#7b3fe4);
   color:#fff;
-  font-weight:700;
-  letter-spacing:1px;
+  font-weight:600;
   cursor:pointer;
-  transition:.2s;
 }
-button:active{transform:scale(.96)}
-
-.btn-alt{
-  margin-top:10px;
-  background:transparent;
-  border:1px solid rgba(255,255,255,.25);
+button:active{transform:scale(.97)}
+.loader{
+  display:none;margin:14px auto;
+  width:28px;height:28px;border-radius:50%;
+  border:4px solid rgba(255,255,255,.2);
+  border-top-color:#00e0ff;
+  animation:spin 1s linear infinite
 }
-
-/* MENSAJE */
-.msg{
-  margin-top:14px;
-  font-size:13px;
-  text-align:center;
-  min-height:18px;
-  opacity:.8;
-}
-
-/* FOOTER */
-.footer{
-  margin-top:22px;
-  text-align:center;
-  font-size:11px;
-  opacity:.5;
+@keyframes spin{to{transform:rotate(360deg)}}
+.console{
+  display:none;margin:14px auto 0;width:90%;
+  max-height:140px;overflow:auto;
+  background:rgba(0,0,0,.3);
+  border-radius:14px;padding:10px;
+  font-family:monospace;font-size:12px;color:#0ff
 }
 
-.footer{
-  margin-top:22px;
-  text-align:center;
+/* MODAL PRINCIPAL */
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;justify-content:center;align-items:center;
+  opacity:0;pointer-events:none;transition:.2s;
+  z-index:9998;
 }
-
-.help-title{
-  font-size:12px;
-  opacity:.7;
-  margin-bottom:12px;
+.modal.show{opacity:1;pointer-events:auto}
+.modal-box{
+  width:90%;max-width:320px;
+  background:rgba(0,0,0,.28);
+  backdrop-filter:blur(16px);
+  border-radius:22px;padding:22px;text-align:center;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 40px rgba(0,224,255,.08);
 }
+.modal-box p{white-space:pre-line;font-size:14px}
 
-.contact-links{
+/* REDES */
+.footer{margin-top:26px}
+.footer b{font-size:12px}
+.social{
+  margin-top:16px;
   display:flex;
-  justify-content:center;
-  gap:14px;
-}
+  flex-direction:column;
+  gap:18px;
 
-.contact{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 12px;
+  /* ✅ scroll cuando agregues más */
+  max-height:220px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-right:6px;
+}
+.social::-webkit-scrollbar{width:6px;}
+.social::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:10px;}
+
+.social-card{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 16px;border-radius:24px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.10);
+}
+.contact-block{display:flex;align-items:center;gap:14px}
+.icon{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;justify-content:center;align-items:center
+}
+.icon img{width:22px}
+.icon.tg{background:#0088cc}
+.icon.wa{background:#25D366}
+.contact-info{font-size:12px;line-height:1.25}
+.role{font-size:10px;opacity:.6}
+.handle a{color:#fff;text-decoration:none;font-weight:600}
+
+/* ===== TOP BAR BUTTONS ===== */
+.top-left, .top-right{
+  position:absolute;
+  top:14px;
+  z-index:5;
+}
+.top-left{ left:14px; }
+.top-right{ right:14px; }
+
+.icon-btn{
+  width:44px;height:44px;
   border-radius:14px;
-  font-size:12px;
-  text-decoration:none;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.28);
+  backdrop-filter:blur(14px);
   color:#fff;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.15);
-  transition:.2s;
-}
-
-.contact img{
-  width:18px;
-  height:18px;
-}
-
-.contact:hover{
-  transform:scale(1.05);
-}
-
-.contact.whatsapp{
-  box-shadow:0 0 12px rgba(37,211,102,.4);
-}
-
-.contact.telegram{
-  box-shadow:0 0 12px rgba(0,136,204,.4);
-}
-
-/* ===== AVISO INSTALACIÓN ===== */
-#installModal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.65);
-  display:none;
+  display:flex;
   justify-content:center;
   align-items:center;
-  z-index:9999;
+  cursor:pointer;
+  user-select:none;
 }
-.install-card{
-  background:#fff;
-  color:#222;
-  width:92%;
-  max-width:360px;
-  border-radius:22px;
-  padding:22px;
-  text-align:center;
-}
-.install-card h3{margin:0;color:#21c7b7}
-.install-sub{font-size:14px;margin:10px 0 16px}
-.install-steps{text-align:left;font-size:14px;line-height:1.6}
-.install-img{margin:16px 0;display:flex;justify-content:center}
-.install-img img{width:180px;border-radius:14px}
-.install-note{font-size:12px;color:#666;margin-top:10px}
-.install-btn{
-  margin-top:16px;width:100%;padding:12px;border:none;border-radius:14px;
-  background:#25D366;color:#fff;font-weight:600
-}
+.icon-btn:active{ transform:scale(.97); }
 
-/* ===== MODAL ADVERTENCIA (1 SOLA VEZ) ===== */
-#welcomeModal{
+/* ===== MENU MODAL (HAMBURGER) ===== */
+#menuModal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.55);
   display:none;
   justify-content:center;
-  align-items:center;
-  z-index:10000;
+  align-items:flex-start;
+  padding-top:80px;
+  z-index:9997;
 }
-
-.welcome-card{
-  position:relative;
+.menu-card{
   width:92%;
-  max-width:420px;
-  background:#fff;
-  color:#222;
+  max-width:360px;
   border-radius:22px;
-  padding:22px 18px 18px;
-  box-shadow:0 18px 60px rgba(0,0,0,.35);
+  padding:18px;
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 50px rgba(123,63,228,.12);
 }
-
-.welcome-close{
-  position:absolute;
-  top:12px;
-  right:12px;
-  width:38px;
-  height:38px;
-  border-radius:999px;
-  border:1px solid rgba(0,0,0,.12);
-  background:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+.menu-title{
   font-weight:900;
-  user-select:none;
-  cursor:default;
-  opacity:.9;
-}
-.welcome-close.ready{
-  cursor:pointer;
-  opacity:1;
-}
-
-.welcome-body{
-  text-align:left;
-  font-size:14px;
-  line-height:1.45;
-}
-
-.welcome-title{
-  font-size:30px;
-  font-weight:900;
-  color:#e53935;
   text-align:center;
-  margin:6px 0 10px;
+  margin-bottom:10px;
+  letter-spacing:1px;
 }
-
-.welcome-subtitle{
-  text-align:center;
-  font-weight:700;
-  margin-bottom:12px;
-}
-
-.welcome-list{
-  margin:10px 0 12px;
-  padding-left:18px;
-}
-.welcome-list li{ margin:6px 0; }
-
-.tg-link{
-  color:#0088cc;
-  font-weight:900;
-  text-decoration:none;
-}
-.tg-link:active{ opacity:.75; }
-
-.welcome-note{
+.menu-close{
   margin-top:12px;
+  width:100%;
+  background:#333;
+}
+.hr{
+  height:1px;
+  background:rgba(255,255,255,.12);
+  margin:12px 0;
+}
+
+/* Tools blocks inside menu */
+.tools{ display:none; }
+
+/* ✅ inputs más cortos en admin/owner */
+.tools input{
+  width:100%;
+  max-width:300px;
+  margin:6px auto 12px;
+  display:block;
+}
+
+.tools button{ width:100%; }
+
+.small{
   font-size:12px;
-  color:#555;
-  opacity:.9;
+  opacity:.85;
   text-align:center;
+  margin-top:10px;
 }
 
-.welcome-help{
-  margin-top:14px;
-  text-align:center;
+/* ===== RECHARGE MODAL ===== */
+#rechargeModal .modal-box{
+  text-align:left;
+}
+.recharge-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.recharge-title{
   font-weight:900;
-  color:#0088cc;
-  letter-spacing:.5px;
+  font-size:16px;
 }
+.recharge-sub{ opacity:.85; margin-top:6px; }
 
-.welcome-icons{
+/* ✅ scroll cuando agregues más */
+.recharge-links{
   margin-top:12px;
   display:flex;
-  justify-content:center;
-  gap:14px;
+  flex-direction:column;
+  gap:10px;
+
+  max-height:280px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-right:6px;
+}
+.recharge-links::-webkit-scrollbar{width:6px;}
+.recharge-links::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.18);
+  border-radius:10px;
 }
 
-.welcome-icon{
-  width:54px;
-  height:54px;
-  border-radius:14px;
+.recharge-link{
   display:flex;
-  justify-content:center;
   align-items:center;
-  border:1px solid rgba(0,0,0,.10);
-  background:#fff;
+  gap:10px;
+  padding:12px 12px;
+  border-radius:16px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.12);
   text-decoration:none;
+  color:#fff;
+}
+.recharge-link img{ width:18px; height:18px; }
+.recharge-link:active{ transform:scale(.99); }
+
+/* chips cyber */
+.badge-chip{
+  margin-left:auto;
+  opacity:.7;
+  font-size:12px;
 }
 
-.welcome-icon img{
-  width:26px;
-  height:26px;
+/* ===== mini glow lines ===== */
+.glowline{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,224,255,.35),transparent);
+  margin:10px 0;
 }
 </style>
 </head>
 
 <body>
 
-<div class="bg"></div>
+<img src="fondo.jpg" id="bgImage">
 
-<div class="card">
-  <h1>LOGIN MRX</h1>
+<div class="panel">
 
-  <div class="avatar">
-    <img src="login-avatar1.png">
+  <!-- TOP LEFT: LOGOUT -->
+  <div class="top-left">
+    <div class="icon-btn" id="logoutBtn" title="Cerrar sesión">⎋</div>
   </div>
 
-  <input id="email" type="email" placeholder="Correo electrónico">
-  <input id="password" type="password" placeholder="Contraseña">
+  <!-- TOP RIGHT: HAMBURGER -->
+  <div class="top-right">
+    <div class="icon-btn" id="menuBtn" title="Menú">≡</div>
+  </div>
 
-  <button onclick="login()">ENTRAR</button>
-  <button class="btn-alt" onclick="register()">CREAR CUENTA</button>
+  <h1>PANEL MRX</h1>
 
-  <div class="msg" id="msg"></div>
+  <!-- Créditos arriba -->
+  <div id="creditsBox" style="margin-top:6px;text-align:center;font-size:13px;opacity:.85;">
+    💳 Créditos: <b id="creditsValue">0</b>
+  </div>
+
+  <div id="roleStatus" style="margin-top:4px;text-align:center;font-size:12px;opacity:.8;">
+    👤 Rol: <b id="roleValue">cargando...</b>
+  </div>
+
+  <div class="glowline"></div>
+
+  <div class="subtitle">BAN WHATSAPP</div>
+
+  <div class="avatar"><img src="avatar.jpg"></div>
+
+  <label>PAÍS</label>
+  <select id="pais">
+    <option value="+51" selected>🇵🇪 Perú</option>
+    <option value="+1">🇺🇸 USA</option>
+    <option value="+52">🇲🇽 México</option>
+    <option value="+54">🇦🇷 Argentina</option>
+    <option value="+55">🇧🇷 Brasil</option>
+    <option value="+56">🇨🇱 Chile</option>
+    <option value="+57">🇨🇴 Colombia</option>
+    <option value="+34">🇪🇸 España</option>
+    <option value="+44">🇬🇧 Reino Unido</option>
+    <option value="+49">🇩🇪 Alemania</option>
+    <option value="+33">🇫🇷 Francia</option>
+  </select>
+
+  <label>NÚMERO</label>
+  <input type="tel" id="numero" placeholder="Ingresa el número" inputmode="numeric">
+
+  <button id="execute">BANEAR</button>
+
+  <div class="loader" id="loader"></div>
+  <div class="console" id="console"></div>
 
   <div class="footer">
-    <div class="help-title">¿Problemas? Contáctame</div>
+    <b>📲 REDES SOCIALES</b>
 
-    <div class="contact-links">
-      <a href="https://wa.me/51955912164" target="_blank" class="contact whatsapp" rel="noopener">
-        <img src="whatsapp.png">
-        <span>955 912 164</span>
-      </a>
-
-      <a href="https://t.me/Dev_MRX00" target="_blank" class="contact telegram" rel="noopener">
-        <img src="telegram.png">
-        <span>@Dev_MRX00</span>
-      </a>
+    <div class="social" id="socialList">
+      <!-- Se llena por JS -->
     </div>
   </div>
 </div>
 
-<!-- MODAL INSTALACIÓN -->
-<div id="installModal">
-  <div class="install-card">
-    <h3>TIPS DE INSTALACIÓN</h3>
-    <div class="install-sub">⚡ Solo 3 pasos para instalar la app</div>
-
-    <div id="installSteps" class="install-steps"></div>
-
-    <div class="install-img">
-      <img src="install-preview.png">
-    </div>
-
-    <div class="install-note" id="installNote"></div>
-
-    <button class="install-btn" onclick="needHelp()">Necesito Ayuda</button>
+<!-- MODAL PRINCIPAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <p id="modalText"></p>
+    <button id="okBtn">OK</button>
   </div>
 </div>
 
-<!-- MODAL ADVERTENCIA (1 SOLA VEZ) -->
-<div id="welcomeModal">
-  <div class="welcome-card">
-    <div id="welcomeClose" class="welcome-close">10</div>
-
-    <div class="welcome-body">
-      <div class="welcome-title">¡ADVERTENCIA!</div>
-      <div class="welcome-subtitle">Los únicos autorizados son para la venta de esta App en TELEGRAM son:</div>
-
-      <ul class="welcome-list" id="welcomeUsers"></ul>
-
-      <div class="welcome-note">
-        El registro es TOTALMENTE GRATUITO.
-      </div>
-      <div class="welcome-note">
-        Si alguien te solicita dinero por APK o activación externa, podría ser victima de ESTAFA.
-      </div>
-      <div class="welcome-note">
-        Para obtener CREDITO en la App. Comunícate con nosotros de immediato para brindarte asesoría.
-      </div>
-		
-		<div class="welcome-help">
-  CUALQUIER DUDA A - <a class="tg-link" target="_blank" rel="noopener" href="https://t.me/Dev_MRX00">T.ME/Dev_MRX00</a>
-</div>
-
-<div class="welcome-icons">
-  <a class="welcome-icon" href="https://t.me/Dev_MRX00" target="_blank" rel="noopener" aria-label="Telegram">
-    <img src="telegram.png" alt="Telegram">
-  </a>
-
-  <a class="welcome-icon" href="https://wa.me/51955912164" target="_blank" rel="noopener" aria-label="WhatsApp">
-    <img src="whatsapp.png" alt="WhatsApp">
-  </a>
-</div>
+<!-- MODAL RECARGA (SIN CRÉDITOS) -->
+<div class="modal" id="rechargeModal">
+  <div class="modal-box" style="position:relative;">
+    <div class="recharge-head">
+      <div class="recharge-title">❌ No tienes suficientes créditos</div>
     </div>
+
+    <div class="recharge-sub">Recarga con:</div>
+
+    <div class="recharge-links" id="rechargeList">
+      <!-- Se llena por JS -->
+    </div>
+
+    <button id="rechargeOk" style="margin-top:14px;width:100%;">CERRAR</button>
   </div>
 </div>
+
+<!-- MODAL MENÚ (☰) -->
+<div id="menuModal">
+  <div class="menu-card">
+    <div class="menu-title">MENÚ</div>
+
+    <div style="text-align:center;font-size:12px;opacity:.85;">
+      💳 <b id="menuCredits">0</b> créditos • 👤 <b id="menuRole">user</b>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- OWNER TOOLS -->
+    <div class="tools" id="ownerTools">
+      <div style="text-align:center;font-weight:900;margin-bottom:10px;">
+        👑 PANEL OWNER
+        <span id="notifBadge" style="display:none;margin-left:8px;padding:2px 8px;border-radius:999px;background:#00e0ff;color:#000;font-size:12px;">0</span>
+      </div>
+
+      <input id="ownerEmail" type="email" placeholder="Correo del usuario">
+      <input id="ownerAmount" type="number" placeholder="Créditos (número)" inputmode="numeric">
+
+      <button id="ownerGiveBtn">DAR CRÉDITOS</button>
+
+      <button id="ownerRemoveBtn" style="margin-top:8px;background:linear-gradient(135deg,#ff3b3b,#7b3fe4);">
+        QUITAR CRÉDITOS
+      </button>
+
+      <button id="makeAdminBtn" style="margin-top:12px;background:linear-gradient(135deg,#00e0ff,#21c7b7);">
+        DAR ADMIN
+      </button>
+
+      <button id="removeAdminBtn" style="margin-top:8px;background:linear-gradient(135deg,#ffb000,#7b3fe4);">
+        QUITAR ADMIN
+      </button>
+
+      <button id="loadEventsBtn" style="margin-top:12px;background:#333;">
+        VER NOTIFICACIONES
+      </button>
+
+      <div id="eventsBox" style="margin-top:10px;font-family:monospace;font-size:12px;white-space:pre-line;max-height:160px;overflow:auto;"></div>
+
+      <div id="ownerMsg" class="small"></div>
+    </div>
+
+    <!-- ADMIN TOOLS -->
+    <div class="tools" id="adminTools">
+      <div style="text-align:center;font-weight:900;margin-bottom:10px;">🛠️ PANEL ADMIN</div>
+
+      <input id="adminEmail" type="email" placeholder="Correo del usuario">
+      <input id="adminAmount" type="number" placeholder="Créditos a dar" inputmode="numeric">
+
+      <button id="adminGiveBtn">DAR CRÉDITOS</button>
+
+      <div id="adminMsg" class="small"></div>
+    </div>
+
+    <button class="menu-close" id="closeMenuBtn">CERRAR</button>
+  </div>
+</div>
+
+<audio id="okAudio" src="ok.mp3" preload="auto"></audio>
 
 <script>
+/* =========================
+   ✅ EDITA AQUÍ (TUS 2 PERSONAS EXTRA)
+   ========================= */
+
+/* Recarga con (modal) — agregué 2 personas extra al final */
+const RECHARGE_CONTACTS = [
+  { type:"wa", title:"OWNER", subtitle:"955 912 164", link:"https://wa.me/51955912164", icon:"whatsapp.png" },
+  { type:"tg", title:"OWNER", subtitle:"@Dev_MRX00", link:"https://t.me/Dev_MRX00", icon:"telegram.png" }
+];
+
+/* Redes sociales (abajo) — agregué 2 tarjetas extra */
+const SOCIAL_CARDS = [
+  {
+    left:  { type:"tg", label:"TELEGRAM", value:"@Dev_MRX00", link:"https://t.me/Dev_MRX00" },
+    right: { type:"wa", label:"WHATSAPP", value:"955 912 164", link:"https://wa.me/51955912164" }
+  }
+];
+
+/* =========================
+   RENDER LISTS (NO TOCAR)
+   ========================= */
+
+function renderRecharge(){
+  const box = document.getElementById("rechargeList");
+  box.innerHTML = RECHARGE_CONTACTS.map(c => `
+    <a class="recharge-link" href="${c.link}" target="_blank" rel="noopener">
+      <img src="${c.icon}" alt="">
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <b>${c.title}</b>
+        <span style="opacity:.85;font-size:12px;">${c.subtitle}</span>
+      </div>
+      <span class="badge-chip">Abrir</span>
+    </a>
+  `).join("");
+}
+
+function renderSocial(){
+  const box = document.getElementById("socialList");
+  const iconHtml = (type) => {
+    if(type === "wa") return `<div class="icon wa"><img src="whatsapp.png"></div>`;
+    return `<div class="icon tg"><img src="telegram.png"></div>`;
+  };
+
+  box.innerHTML = SOCIAL_CARDS.map(card => `
+    <div class="social-card">
+      <div class="contact-block">
+        ${iconHtml(card.left.type)}
+        <div class="contact-info">
+          <div class="role">${card.left.label}</div>
+          <div class="handle"><a href="${card.left.link}" target="_blank" rel="noopener">${card.left.value}</a></div>
+        </div>
+      </div>
+      <div class="contact-block">
+        ${iconHtml(card.right.type)}
+        <div class="contact-info">
+          <div class="role">${card.right.label}</div>
+          <div class="handle"><a href="${card.right.link}" target="_blank" rel="noopener">${card.right.value}</a></div>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+renderRecharge();
+renderSocial();
+
+/* ===== SUPABASE ===== */
 const { createClient } = window.supabase;
 
 const supabaseClient = createClient(
@@ -416,151 +522,346 @@ const supabaseClient = createClient(
   "sb_publishable_61e0-7mYaVwMZ1v44uj77w_xpIdxiFk"
 );
 
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const msg = document.getElementById("msg");
-
-function clean(value){
-  return value.trim().toLowerCase();
-}
-
-/* ✅ UNA SOLA FUNCIÓN PARA DETECTAR INSTALADA */
-function isInstalled(){
-  return window.matchMedia('(display-mode: standalone)').matches
-      || window.navigator.standalone === true;
-}
-
-async function login(){
-  const email = clean(emailInput.value);
-  const password = passwordInput.value.trim();
-
-  if(!email || !password){
-    msg.innerText = "Completa todos los campos";
-    return;
+/* ===== AUTH GUARD ===== */
+(async ()=>{
+  const { data:{ session } } = await supabaseClient.auth.getSession();
+  if(!session){
+    location.replace("login.html");
+  } else {
+    await loadMyProfile();
+    await showToolsByRole();
+    await refreshNotifBadge();
   }
+})();
 
-  msg.innerText = "Conectando...";
+/* ===== UI HELPERS ===== */
+const modal=document.getElementById("modal");
+const modalText=document.getElementById("modalText");
+const okBtn=document.getElementById("okBtn");
 
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+function showModal(text){
+  modalText.textContent = text;
+  okBtn.textContent = "OK";
+  modal.classList.add("show");
+}
+okBtn.onclick=()=> modal.classList.remove("show");
+
+/* Recharge modal */
+const rechargeModal = document.getElementById("rechargeModal");
+document.getElementById("rechargeOk").onclick = () => rechargeModal.classList.remove("show");
+function showRecharge(){ rechargeModal.classList.add("show"); }
+
+/* Menu modal */
+const menuModal = document.getElementById("menuModal");
+document.getElementById("menuBtn").onclick = () => { menuModal.style.display = "flex"; };
+document.getElementById("closeMenuBtn").onclick = () => { menuModal.style.display = "none"; };
+
+/* Logout */
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabaseClient.auth.signOut();
+  location.replace("login.html");
+};
+
+/* FIX ZOOM iOS */
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => {
+  if(e.scale !== 1) e.preventDefault();
+},{ passive:false });
+
+/* ===== PROFILE: credits/role ===== */
+let MY_ROLE = "user";
+let MY_CREDITS = 0;
+
+async function loadMyProfile(){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(!user) return;
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("role, credits")
+    .eq("id", user.id)
+    .single();
 
   if(error){
-    msg.innerText = error.message;
-  }else{
-    location.href = "index.html";
+    console.log("Error leyendo profile:", error);
+    document.getElementById("roleValue").textContent = "error";
+    document.getElementById("creditsValue").textContent = "0";
+    return;
   }
+
+  MY_ROLE = (data?.role || "user");
+  MY_CREDITS = Number(data?.credits || 0);
+
+  document.getElementById("roleValue").textContent = MY_ROLE;
+  document.getElementById("creditsValue").textContent = String(MY_CREDITS);
+
+  // menu info
+  document.getElementById("menuRole").textContent = MY_ROLE;
+  document.getElementById("menuCredits").textContent = String(MY_CREDITS);
 }
 
-async function register(){
-  const email = clean(emailInput.value);
-  const password = passwordInput.value.trim();
+/* ===== SHOW TOOLS BY ROLE (IN MENU) ===== */
+async function showToolsByRole(){
+  if(!MY_ROLE) await loadMyProfile();
 
-  if(!email || !password){
-    msg.innerText = "Completa todos los campos";
-    return;
-  }
+  const ownerTools = document.getElementById("ownerTools");
+  const adminTools = document.getElementById("adminTools");
 
-  if(password.length < 6){
-    msg.innerText = "La contraseña debe tener mínimo 6 caracteres";
-    return;
-  }
+  ownerTools.style.display = (MY_ROLE === "owner") ? "block" : "none";
+  adminTools.style.display = (MY_ROLE === "admin") ? "block" : "none";
+}
 
-  msg.innerText = "Creando cuenta...";
+/* ===== NOTIFICATIONS BADGE (OWNER) ===== */
+async function refreshNotifBadge(){
+  if(MY_ROLE !== "owner") return;
 
-  const { error } = await supabaseClient.auth.signUp({ email, password });
+  const lastSeen = Number(localStorage.getItem("eventsLastSeenId") || "0");
+  const { data, error } = await supabaseClient.rpc("get_recent_events", { p_limit: 50 });
 
   if(error){
-    msg.innerText = error.message;
+    console.log("No puedo leer eventos:", error);
+    return;
+  }
+
+  const list = data || [];
+  const newCount = list.filter(e => Number(e.id) > lastSeen).length;
+  const badge = document.getElementById("notifBadge");
+
+  if(newCount > 0){
+    badge.textContent = String(newCount);
+    badge.style.display = "inline-block";
   }else{
-    msg.innerText = "Cuenta creada. Ahora inicia sesión.";
+    badge.style.display = "none";
   }
 }
 
-/* ===== INSTALACIÓN (Android/iOS) ===== */
-function closeInstall(){
+/* ===== PANEL PRINCIPAL (ACCIÓN) ===== */
+const execute=document.getElementById("execute");
+const loader=document.getElementById("loader");
+const consoleBox=document.getElementById("console");
+const numero=document.getElementById("numero");
+const pais=document.getElementById("pais");
+const okAudio=document.getElementById("okAudio");
 
-function needHelp(){
-  closeInstall(); // opcional: cierra el modal antes de abrir WhatsApp
-  window.open("https://wa.me/51955912164", "_blank");
+let step=0,lastNumber="";
+
+execute.onclick=async ()=>{
+  await loadMyProfile();
+  if(MY_CREDITS <= 0){
+    showRecharge();
+    return;
+  }
+
+  if(!numero.value.trim()) return;
+
+  lastNumber=pais.value+" "+numero.value.trim();
+  loader.style.display="block";
+  consoleBox.style.display="block";
+  consoleBox.innerHTML="> Iniciando proceso...";
+
+  setTimeout(()=>{
+    loader.style.display="none";
+    showModal(`¿QUIERES CONTINUAR?\n\n📱 ${lastNumber}`);
+    step=1;
+  },1200);
+};
+
+document.getElementById("okBtn").onclick=()=>{
+  if(step===1){
+    modalText.textContent=`✅ OPERACIÓN COMPLETADA\n\n${lastNumber}`;
+    okAudio.play();
+    okBtn.textContent="CERRAR";
+    step=2;
+  }else{
+    modal.classList.remove("show");
+    location.reload();
+  }
+};
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("service-worker.js");
 }
-  localStorage.setItem("installSeen","1");
-  document.getElementById("installModal").style.display="none";
-}
 
-/* ===== MODAL ADVERTENCIA: SOLO 1 VEZ ===== */
-const WELCOME_USERS = ["Dev_MRX00","XAM_OFC","MRX_V2","Blackops_666"];
+/* ===== ADMIN/OWNER ACTIONS (RPC) ===== */
+function cleanEmail(v){ return (v || "").trim().toLowerCase(); }
+function toInt(v){ return parseInt(String(v || "").trim(), 10); }
 
-function renderWelcomeUsers(){
-  const box = document.getElementById("welcomeUsers");
-  box.innerHTML = WELCOME_USERS.map(u => {
-    const username = String(u).replace("@", "");
-    return `<li><a class="tg-link" target="_blank" rel="noopener" href="https://t.me/${username}">@${username}</a></li>`;
-  }).join("");
-}
+/* Admin: dar créditos */
+const adminGiveBtn = document.getElementById("adminGiveBtn");
+if(adminGiveBtn){
+  adminGiveBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("adminEmail").value);
+    const amount = toInt(document.getElementById("adminAmount").value);
+    const msg = document.getElementById("adminMsg");
 
-function showWelcomeModalOnce(){
-  if(!isInstalled()) return;
-  if(localStorage.getItem("welcome_seen")) return;
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+      if(!amount || amount <= 0) throw new Error("Cantidad inválida");
 
-  const modal = document.getElementById("welcomeModal");
-  const closeBtn = document.getElementById("welcomeClose");
+      const { error } = await supabaseClient.rpc("give_credits_by_email", {
+        p_email: email,
+        p_amount: amount,
+        p_note: "venta/admin"
+      });
+      if(error) throw error;
 
-  renderWelcomeUsers();
-  modal.style.display = "flex";
-
-  let t = 10;
-  closeBtn.textContent = String(t);
-  closeBtn.classList.remove("ready");
-  closeBtn.style.cursor = "default";
-
-  const timer = setInterval(() => {
-    t -= 1;
-    if(t > 0){
-      closeBtn.textContent = String(t);
-      return;
+      msg.textContent = "✅ Créditos enviados";
+      await loadMyProfile();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
     }
-    clearInterval(timer);
-    closeBtn.textContent = "✕";
-    closeBtn.classList.add("ready");
-    closeBtn.style.cursor = "pointer";
-  }, 1000);
-
-  closeBtn.onclick = () => {
-    if(!closeBtn.classList.contains("ready")) return;
-    modal.style.display = "none";
-    localStorage.setItem("welcome_seen", "1");
   };
 }
 
-/* ✅ IMPORTANTÍSIMO:
-   No uses window.onload = ... porque ya lo estabas usando.
-   Mejor usamos addEventListener para que NO se pisen. */
-window.addEventListener("load", () => {
-  // Instalación Android/iOS (solo si NO está instalada)
-  if(!isInstalled() && !localStorage.getItem("installSeen")){
-    const ua = navigator.userAgent.toLowerCase();
+/* Owner: dar créditos */
+const ownerGiveBtn = document.getElementById("ownerGiveBtn");
+if(ownerGiveBtn){
+  ownerGiveBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const amount = toInt(document.getElementById("ownerAmount").value);
+    const msg = document.getElementById("ownerMsg");
 
-    if(/iphone|ipad|ipod/.test(ua)){
-      document.getElementById("installSteps").innerHTML=
-      `1. En Safari toca <b>Compartir</b> ⬆️<br>
-       2. Selecciona <b>Agregar a inicio</b><br>
-       3. Presiona <b>Aceptar</b>`;
-      document.getElementById("installNote").innerHTML=
-      `Nota: iPhone permite instalar la app varias veces. Mantén solo una.`;
-      document.getElementById("installModal").style.display="flex";
-    }else if(/android/.test(ua)){
-      document.getElementById("installSteps").innerHTML=
-      `1. Toca los <b>tres puntos</b> ⋮<br>
-       2. <b>Agregar a pantalla principal</b><br>
-       3. <b>Instalar</b>`;
-      document.getElementById("installNote").innerHTML=
-      `Si no aparece la opción, usa Chrome o Brave.`;
-      document.getElementById("installModal").style.display="flex";
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+      if(!amount || amount <= 0) throw new Error("Cantidad inválida");
+
+      const { error } = await supabaseClient.rpc("give_credits_by_email", {
+        p_email: email,
+        p_amount: amount,
+        p_note: "venta/owner"
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Créditos enviados";
+      await refreshNotifBadge();
+      await loadMyProfile();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
     }
-  }
+  };
+}
 
-  // Modal advertencia (solo si está instalada)
-  setTimeout(showWelcomeModalOnce, 300);
-});
+/* Owner: quitar créditos */
+const ownerRemoveBtn = document.getElementById("ownerRemoveBtn");
+if(ownerRemoveBtn){
+  ownerRemoveBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const amount = toInt(document.getElementById("ownerAmount").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+      if(!amount || amount <= 0) throw new Error("Cantidad inválida");
+
+      const { error } = await supabaseClient.rpc("remove_credits_by_email", {
+        p_email: email,
+        p_amount: amount,
+        p_note: "ajuste/owner"
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Créditos quitados";
+      await refreshNotifBadge();
+      await loadMyProfile();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+/* Owner: dar/quitar admin */
+const makeAdminBtn = document.getElementById("makeAdminBtn");
+if(makeAdminBtn){
+  makeAdminBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+
+      const { error } = await supabaseClient.rpc("set_admin_by_email", {
+        p_email: email,
+        p_make_admin: true
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Ahora es ADMIN";
+      await refreshNotifBadge();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+const removeAdminBtn = document.getElementById("removeAdminBtn");
+if(removeAdminBtn){
+  removeAdminBtn.onclick = async () => {
+    const email = cleanEmail(document.getElementById("ownerEmail").value);
+    const msg = document.getElementById("ownerMsg");
+
+    msg.textContent = "Procesando...";
+    try{
+      if(!email) throw new Error("Escribe el correo");
+
+      const { error } = await supabaseClient.rpc("set_admin_by_email", {
+        p_email: email,
+        p_make_admin: false
+      });
+      if(error) throw error;
+
+      msg.textContent = "✅ Admin quitado (vuelve a USER)";
+      await refreshNotifBadge();
+    }catch(e){
+      msg.textContent = "❌ " + (e.message || "Error");
+    }
+  };
+}
+
+/* Owner: ver notificaciones */
+const loadEventsBtn = document.getElementById("loadEventsBtn");
+if(loadEventsBtn){
+  loadEventsBtn.onclick = async () => {
+    const box = document.getElementById("eventsBox");
+    box.textContent = "Cargando...";
+
+    const { data, error } = await supabaseClient.rpc("get_recent_events", { p_limit: 30 });
+    if(error){
+      box.textContent = "❌ " + (error.message || "Error");
+      return;
+    }
+
+    const list = data || [];
+    if(list.length === 0){
+      box.textContent = "Sin notificaciones aún.";
+      return;
+    }
+
+    localStorage.setItem("eventsLastSeenId", String(list[0].id));
+    await refreshNotifBadge();
+
+    const mapType = (t) => {
+      if(t === "CREDIT_ADD") return "➕ Créditos";
+      if(t === "CREDIT_REMOVE") return "➖ Créditos";
+      if(t === "MAKE_ADMIN") return "👑 Dar admin";
+      if(t === "REMOVE_ADMIN") return "❌ Quitar admin";
+      return t;
+    };
+
+    box.textContent = list.map(e => {
+      const when = new Date(e.created_at).toLocaleString();
+      const amt = (e.amount == null) ? "" : ` (${e.amount})`;
+      const actor = e.actor_email ? ` | ${e.actor_email}` : "";
+      return `${mapType(e.event_type)}${amt} → ${e.target_email || ""}${actor}\n${when}\n`;
+    }).join("\n");
+  };
+}
+
+
+
 </script>
 
 </body>
