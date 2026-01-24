@@ -854,9 +854,34 @@ okBtn.onclick = async () => {
 };
 
 /* ===== SERVICE WORKER ===== */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js"); // ✅ en la raíz del dominio
+// ===== SERVICE WORKER (REGISTRO FUERTE + DEBUG) =====
+let SW_REG = null;
+
+async function initServiceWorker(){
+  try{
+    if(!("serviceWorker" in navigator)) {
+      console.log("No SW");
+      return null;
+    }
+
+    // registra con scope raíz
+    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+
+    // iOS a veces necesita un update
+    try { await reg.update(); } catch(e){}
+
+    // espera a que esté listo
+    SW_REG = await navigator.serviceWorker.ready;
+
+    return SW_REG;
+  }catch(e){
+    console.log("SW init error:", e);
+    return null;
+  }
 }
+
+// inicializa apenas carga
+initServiceWorker();
 
 /* ===== ADMIN/OWNER ACTIONS (RPC) ===== */
 function cleanEmail(v){ return (v || "").trim().toLowerCase(); }
@@ -1055,29 +1080,40 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function enablePushForOwner(){
+  const btn = document.getElementById("enablePushBtn");
   try{
+    if(btn) btn.disabled = true;
+
+    // ✅ Mensaje visible SIEMPRE
+    showModal("⏳ Iniciando activación de notificaciones...");
+
     if(!("serviceWorker" in navigator)) {
       showModal("❌ Tu navegador no soporta Service Worker.");
       return;
     }
 
     // iOS/Safari: push requiere PWA instalado en pantalla de inicio
-    if(!window.matchMedia("(display-mode: standalone)").matches && !window.navigator.standalone){
-      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → 'Agregar a pantalla de inicio'.");
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if(!isStandalone){
+      showModal("📲 Para activar notificaciones, instala la app:\nSafari → Compartir → 'Agregar a pantalla de inicio'.\n\nLuego ábrela desde el ícono.");
       return;
     }
 
     // 1) Permiso
     const perm = await Notification.requestPermission();
     if(perm !== "granted"){
-      showModal("❌ Debes permitir notificaciones.");
+      showModal("❌ Permiso de notificaciones NO concedido.");
       return;
     }
 
-    // 2) Service worker listo
-    const reg = await navigator.serviceWorker.ready;
+    // 2) Service Worker listo (usa el que registramos arriba)
+    const reg = SW_REG || await navigator.serviceWorker.ready;
 
-    // ✅ Validación real: pushManager existe?
+    if(!reg){
+      showModal("❌ No pude obtener el Service Worker (reg null).");
+      return;
+    }
+
     if(!reg.pushManager){
       showModal("❌ Este navegador no soporta PushManager (push web).");
       return;
@@ -1086,10 +1122,12 @@ async function enablePushForOwner(){
     const vapidPublicKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
     const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    // 3) Usa la subs existente si ya existe (no dependas del segundo click)
+    // 3) Crear/usar suscripción
+    showModal("⏳ Creando suscripción push...");
+
     let sub = await reg.pushManager.getSubscription();
 
-    // Si no existe, crea una nueva
+    // si no existe, crea
     if(!sub){
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -1105,11 +1143,11 @@ async function enablePushForOwner(){
     const json = sub.toJSON();
     if(!json?.endpoint || !json?.keys?.p256dh || !json?.keys?.auth){
       showModal("❌ Suscripción incompleta (faltan keys).");
-      console.log("SUB JSON:", json);
       return;
     }
 
-    // 4) Usuario actual
+    // 4) Usuario
+    showModal("⏳ Obteniendo usuario...");
     const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
     if(userErr || !user){
       showModal("❌ No hay sesión. Vuelve a iniciar sesión.");
@@ -1117,6 +1155,8 @@ async function enablePushForOwner(){
     }
 
     // 5) Guardar en DB
+    showModal("⏳ Guardando en la tabla push_subscriptions...");
+
     const payload = {
       user_id: user.id,
       endpoint: json.endpoint,
@@ -1125,22 +1165,25 @@ async function enablePushForOwner(){
       created_at: new Date().toISOString()
     };
 
-    console.log("Guardando push_subscriptions:", payload);
-
     const { error } = await supabaseClient
       .from("push_subscriptions")
       .upsert(payload, { onConflict: "user_id" });
 
     if(error){
-      showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
-      console.log("DB error:", error);
+      showModal("❌ No se pudo guardar en push_subscriptions:\n\n" + error.message);
       return;
     }
 
-    showModal("✅ Notificaciones activadas");
+    // ✅ Confirmación final (ya no depende de “segundo click”)
+    showModal("✅ Notificaciones activadas y guardadas en la tabla.");
+
+    // opcional: cambia texto del botón para que se note
+    if(btn) btn.textContent = "✅ Notificaciones activadas";
   } catch(e){
-    showModal("❌ Error activando push\n\n" + (e?.message || e));
+    showModal("❌ Error activando push:\n\n" + (e?.message || e));
     console.log("enablePushForOwner error:", e);
+  } finally {
+    if(btn) btn.disabled = false;
   }
 }
 </script>
