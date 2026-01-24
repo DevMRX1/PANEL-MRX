@@ -658,7 +658,7 @@ async function enablePush(){
 
   const reg = await navigator.serviceWorker.ready;
 
-  const vapidKey = "AQUI_VA_TU_VAPID_PUBLIC_KEY";
+  const vapidKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
 
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
@@ -1085,7 +1085,7 @@ async function enablePushForOwner(){
 
     const reg = await navigator.serviceWorker.ready;
 
-    const vapidPublicKey = "BGAtipaPzjeAwFPnTeMSUPWIq8SU2bvOrwb4TBst2VLQpaA3N5tqu1QX7O2IV8IWP07Ey-bLE_QTFyAApGhMTZc";
+    const vapidPublicKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
     const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
     // ✅ si había una subs vieja, bórrala y crea una nueva
