@@ -1,7 +1,4 @@
-// ✅ sw.js completo (PWA + Push + Click + Cache opcional)
-// Guarda este archivo como: /sw.js (en la raíz) o /public/sw.js según tu proyecto.
-
-const CACHE_NAME = "mrx-cache-v6"; // cambia el número si actualizas
+const CACHE_NAME = "mrx-cache-v6";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -9,89 +6,77 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    // Borra caches viejos
     const keys = await caches.keys();
-    await Promise.all(
-      keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null))
-    );
-
+    await Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)));
     await self.clients.claim();
   })());
 });
 
-/**
- * ✅ PUSH: cuando llega una notificación push
- * Tu server manda JSON: { title, body, url }
- */
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+
+  event.respondWith((async () => {
+    try {
+      const res = await fetch(event.request);
+      const clone = res.clone();
+
+      if (event.request.url.startsWith("http")) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, clone);
+      }
+      return res;
+    } catch (e) {
+      const cached = await caches.match(event.request);
+      return cached || new Response("Offline", { status: 503 });
+    }
+  })());
+});
+
+// ✅ RECIBIR PUSH Y MOSTRAR NOTIFICACIÓN
 self.addEventListener("push", (event) => {
   event.waitUntil((async () => {
     let data = {};
     try {
       data = event.data ? event.data.json() : {};
-    } catch (e) {
-      // fallback por si llega texto
+    } catch {
       data = { title: "Notificación", body: event.data?.text?.() || "" };
     }
 
-    const title = data.title || "Notificación";
+    const title = data.title || "Créditos agregados 💳";
     const options = {
-      body: data.body || "",
-      // ✅ pon tus icons si los tienes en tu /public
+      body: data.body || "Tienes una actualización.",
       icon: data.icon || "/icon-192.png",
       badge: data.badge || "/badge-72.png",
-      data: {
-        url: data.url || "/", // a dónde ir al hacer click
-      },
-      // Opcional: vibración (Android)
-      vibrate: [100, 50, 100],
+      data: { url: data.url || "/" },
+      tag: data.tag || "credit-push",
+      renotify: true,
     };
 
     await self.registration.showNotification(title, options);
   })());
 });
 
-/**
- * ✅ CLICK: cuando el usuario toca la notificación
- */
+// ✅ CLICK EN NOTIFICACIÓN
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-
-  const url = event.notification?.data?.url || "/";
+  const urlToOpen = event.notification?.data?.url || "/";
 
   event.waitUntil((async () => {
-    const allClients = await clients.matchAll({
+    const allClients = await self.clients.matchAll({
       type: "window",
       includeUncontrolled: true,
     });
 
-    // Si ya hay una pestaña abierta, enfócala
     for (const client of allClients) {
-      if (client.url.includes(url) && "focus" in client) {
-        return client.focus();
+      if ("focus" in client) {
+        await client.focus();
+        try { await client.navigate(urlToOpen); } catch {}
+        return;
       }
     }
 
-    // Si no hay, abre nueva
-    if (clients.openWindow) return clients.openWindow(url);
+    if (self.clients.openWindow) {
+      await self.clients.openWindow(urlToOpen);
+    }
   })());
-});
-
-/**
- * ✅ FETCH (opcional): cache simple para GET
- * Si no quieres cache, puedes borrar todo este bloque.
- */
-self.addEventListener("fetch", (event) => {
-  // Solo cachea GET http/https
-  if (event.request.method !== "GET") return;
-  if (!event.request.url.startsWith("http")) return;
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
 });
