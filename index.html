@@ -1039,66 +1039,61 @@ if(loadEventsBtn){
 
 // BOTÓN ACTIVAR PUSH (OWNER)
 const enablePushBtn = document.getElementById("enablePushBtn");
-
-if(enablePushBtn){
+if (enablePushBtn) {
   enablePushBtn.onclick = async () => {
     await enablePushForOwner();
   };
 }
 
-
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; i++) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
   return outputArray;
 }
 
-
-
-async function enablePushForOwner(){
-  try{
-    if(!("serviceWorker" in navigator)) {
+async function enablePushForOwner() {
+  try {
+    if (!("serviceWorker" in navigator)) {
       showModal("❌ Tu navegador no soporta Service Worker.");
       return;
     }
 
-    // iOS/Safari: push requiere PWA instalado en pantalla de inicio
-    if(!window.matchMedia("(display-mode: standalone)").matches && !window.navigator.standalone){
-      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → 'Agregar a pantalla de inicio'.");
-      return;
-    }
-
     const perm = await Notification.requestPermission();
-    if(perm !== "granted"){
-      showModal("Debes permitir notificaciones.");
+    if (perm !== "granted") {
+      showModal("❌ Debes permitir notificaciones.");
       return;
     }
 
     const reg = await navigator.serviceWorker.ready;
 
-    const vapidPublicKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
+    // ✅ TU VAPID PUBLIC KEY
+    const vapidPublicKey =
+      "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
+
     const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    // ✅ si había una subs vieja, bórrala y crea una nueva
+    // ✅ borrar suscripción vieja
     const oldSub = await reg.pushManager.getSubscription();
     if (oldSub) await oldSub.unsubscribe();
 
+    // ✅ crear nueva suscripción
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: appServerKey
+      applicationServerKey: appServerKey,
     });
+
+    console.log("SUB OK:", sub);
 
     const json = sub.toJSON();
     const { data: { user } } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+      showModal("❌ No hay sesión activa.");
+      return;
+    }
 
     // ✅ guarda 1 subs por usuario
     const { error } = await supabaseClient
@@ -1108,18 +1103,20 @@ async function enablePushForOwner(){
         endpoint: json.endpoint,
         p256dh: json.keys.p256dh,
         auth: json.keys.auth,
-        created_at: new Date().toISOString()
-      }, { onConflict: "user_id" }); // ✅ CAMBIO CLAVE
+        created_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
 
-    if(error){
+    if (error) {
+      console.log("DB ERROR:", error);
       showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
       return;
     }
 
-    showModal("✅ Notificaciones activadas");
-  } catch(e){
+    showModal("✅ Notificaciones activadas correctamente ✅");
+
+  } catch (e) {
+    console.log("PUSH ERROR:", e);
     showModal("❌ Error activando push\n\n" + (e.message || e));
-    console.log("enablePushForOwner error:", e);
   }
 }
 </script>
