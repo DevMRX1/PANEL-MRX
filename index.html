@@ -343,25 +343,25 @@ button:active{transform:scale(.97)}
     <div class="icon-btn" id="menuBtn" title="Menú">≡</div>
   </div>
 
-  <h1>PANEL MRX</h1>
+  <h1>𝐏𝐀𝐍𝐄𝐋 𝐌𝐑𝐗</h1>
 
   <!-- Créditos arriba -->
   <div id="creditsBox" style="margin-top:6px;text-align:center;font-size:13px;opacity:.85;">
-    💳 Créditos: <b id="creditsValue">0</b>
+    💳 𝙲𝚛𝚎𝚍𝚒𝚝𝚘𝚜: <b id="creditsValue">0</b>
   </div>
 
   <div id="roleStatus" style="margin-top:4px;text-align:center;font-size:12px;opacity:.8;">
-    👤 Rol: <b id="roleValue">cargando...</b>
+    👤 𝚁𝚘𝚕: <b id="roleValue">𝕮𝖆𝖗𝖌𝖆𝖓𝖉𝖔…</b>
   </div>
 
   <div class="glowline"></div>
 
-  <!-- ✅ Texto neutral -->
-  <div class="subtitle">BAN WHATSAPP</div>
+  <!-- (Texto neutral) -->
+  <div class="subtitle">𝐁𝐀𝐍 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏</div>
 
   <div class="avatar"><img src="avatar.jpg"></div>
 
-  <label>PAÍS</label>
+  <label>𝙋𝘼𝙄𝙎</label>
   <select id="pais">
     <option value="+51" selected>🇵🇪 Perú</option>
     <option value="+1">🇺🇸 USA</option>
@@ -376,22 +376,17 @@ button:active{transform:scale(.97)}
     <option value="+33">🇫🇷 Francia</option>
   </select>
 
-  <!-- ✅ Texto neutral -->
-  <label>DATO</label>
+  <label>𝙉𝙐𝙈𝙀𝙍𝙊</label>
   <input type="tel" id="numero" placeholder="Ingresa el número" inputmode="numeric">
 
-  <!-- ✅ Texto neutral -->
-  <button id="execute">BANEAR</button>
+  <button id="execute">ＢＡＮＥＡＲ</button>
 
   <div class="loader" id="loader"></div>
   <div class="console" id="console"></div>
 
   <div class="footer">
-    <b>📲 REDES SOCIALES</b>
-
-    <div class="social" id="socialList">
-      <!-- Se llena por JS -->
-    </div>
+    <b>📲 𝚁𝙴𝙳𝙴𝚂 𝚂𝙾𝙲𝙸𝙰𝙻𝙴𝚂</b>
+    <div class="social" id="socialList"></div>
   </div>
 </div>
 
@@ -399,7 +394,7 @@ button:active{transform:scale(.97)}
 <div class="modal" id="modal">
   <div class="modal-box">
     <p id="modalText"></p>
-    <button id="okBtn">OK</button>
+    <button id="okBtn">ＯＫ</button>
   </div>
 </div>
 
@@ -407,16 +402,14 @@ button:active{transform:scale(.97)}
 <div class="modal" id="rechargeModal">
   <div class="modal-box" style="position:relative;">
     <div class="recharge-head">
-      <div class="recharge-title">❌ No tienes suficientes créditos</div>
+      <div class="recharge-title">𝘕𝘰 𝘵𝘪𝘦𝘯𝘦𝘴 𝘴𝘶𝘧𝘪𝘤𝘪𝘦𝘯𝘵𝘦𝘴 𝘤𝘳𝘦𝘥𝘪𝘵𝘰𝘴</div>
     </div>
 
-    <div class="recharge-sub">Recarga con:</div>
+    <div class="recharge-sub">𝗥𝗲𝗰𝗮𝗿𝗴𝗮 𝗰𝗼𝗻:</div>
 
-    <div class="recharge-links" id="rechargeList">
-      <!-- Se llena por JS -->
-    </div>
+    <div class="recharge-links" id="rechargeList"></div>
 
-    <button id="rechargeOk" style="margin-top:14px;width:100%;">CERRAR</button>
+    <button id="rechargeOk" style="margin-top:14px;width:100%;">𝐂𝐄𝐑𝐑𝐀𝐑</button>
   </div>
 </div>
 
@@ -426,7 +419,7 @@ button:active{transform:scale(.97)}
     <div class="menu-title">MENÚ</div>
 
     <div style="text-align:center;font-size:12px;opacity:.85;">
-      💳 <b id="menuCredits">0</b> créditos • 👤 <b id="menuRole">user</b>
+      💳 <b id="menuCredits">0</b> 𝙲𝚛𝚎𝚍𝚒𝚝𝚘𝚜 • 👤 <b id="menuRole">user</b>
     </div>
 
     <div class="hr"></div>
@@ -434,49 +427,55 @@ button:active{transform:scale(.97)}
     <!-- OWNER TOOLS -->
     <div class="tools" id="ownerTools">
       <div style="text-align:center;font-weight:900;margin-bottom:10px;">
-        👑 PANEL OWNER
+        👑 ᴘᴀɴᴇʟ ᴏᴡɴᴇʀ
         <span id="notifBadge" style="display:none;margin-left:8px;padding:2px 8px;border-radius:999px;background:#00e0ff;color:#000;font-size:12px;">0</span>
       </div>
 
       <input id="ownerEmail" type="email" placeholder="Correo del usuario">
       <input id="ownerAmount" type="number" placeholder="Créditos (número)" inputmode="numeric">
 
-      <button id="ownerGiveBtn">DAR CRÉDITOS</button>
+      <button id="ownerGiveBtn">ᴅᴀʀ ᴄʀᴇᴅɪᴛᴏs</button>
 
       <button id="ownerRemoveBtn" style="margin-top:8px;background:linear-gradient(135deg,#ff3b3b,#7b3fe4);">
-        QUITAR CRÉDITOS
+        ǫᴜɪᴛᴀʀ ᴄʀᴇᴅɪᴛᴏs
       </button>
 
       <button id="makeAdminBtn" style="margin-top:12px;background:linear-gradient(135deg,#00e0ff,#21c7b7);">
-        DAR ADMIN
+        ᴅᴀʀ ᴀᴅᴍɪɴ
       </button>
 
       <button id="removeAdminBtn" style="margin-top:8px;background:linear-gradient(135deg,#ffb000,#7b3fe4);">
-        QUITAR ADMIN
+        ǫᴜɪᴛᴀʀ ᴀᴅᴍɪɴ
       </button>
 
       <button id="loadEventsBtn" style="margin-top:12px;background:#333;">
-        VER NOTIFICACIONES
+        ᴠᴇʀ ɴᴏᴛɪꜰɪᴄᴀᴄɪᴏɴᴇs
       </button>
 
       <div id="eventsBox" style="margin-top:10px;font-family:monospace;font-size:12px;white-space:pre-line;max-height:160px;overflow:auto;"></div>
 
+
+
+<button id="enablePushBtn" style="margin-top:12px;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
+  🔔 Activar notificaciones
+</button>
+ 
       <div id="ownerMsg" class="small"></div>
     </div>
 
     <!-- ADMIN TOOLS -->
     <div class="tools" id="adminTools">
-      <div style="text-align:center;font-weight:900;margin-bottom:10px;">🛠️ PANEL ADMIN</div>
+      <div style="text-align:center;font-weight:900;margin-bottom:10px;">🛠️ ᴘᴀɴᴇʟ ᴀᴅᴍɪɴ</div>
 
       <input id="adminEmail" type="email" placeholder="Correo del usuario">
       <input id="adminAmount" type="number" placeholder="Créditos a dar" inputmode="numeric">
 
-      <button id="adminGiveBtn">DAR CRÉDITOS</button>
+      <button id="adminGiveBtn">ᴅᴀʀ ᴄʀᴇᴅɪᴛᴏs</button>
 
       <div id="adminMsg" class="small"></div>
     </div>
 
-    <button class="menu-close" id="closeMenuBtn">CERRAR</button>
+    <button class="menu-close" id="closeMenuBtn">ᴄᴇʀʀᴀʀ</button>
   </div>
 </div>
 
@@ -484,26 +483,19 @@ button:active{transform:scale(.97)}
 
 <script>
 /* =========================
-   ✅ EDITA AQUÍ (TUS 2 PERSONAS EXTRA)
+   LISTAS
    ========================= */
-
-/* Recarga con (modal) */
 const RECHARGE_CONTACTS = [
   { type:"wa", title:"OWNER", subtitle:"955 912 164", link:"https://wa.me/51955912164", icon:"whatsapp.png" },
   { type:"tg", title:"OWNER", subtitle:"@Dev_MRX00", link:"https://t.me/Dev_MRX00", icon:"telegram.png" }
 ];
 
-/* Redes sociales (abajo) */
 const SOCIAL_CARDS = [
   {
     left:  { type:"tg", label:"TELEGRAM", value:"@Dev_MRX00", link:"https://t.me/Dev_MRX00" },
     right: { type:"wa", label:"WHATSAPP", value:"955 912 164", link:"https://wa.me/51955912164" }
   }
 ];
-
-/* =========================
-   RENDER LISTS (NO TOCAR)
-   ========================= */
 
 function renderRecharge(){
   const box = document.getElementById("rechargeList");
@@ -566,20 +558,23 @@ const supabaseClient = createClient(
     await loadMyProfile();
     await showToolsByRole();
     await refreshNotifBadge();
+    await startOwnerRealtimeNotif(); // ✅ IMPORTANTE
   }
 })();
 
-/* ===== UI HELPERS ===== */
-const modal=document.getElementById("modal");
-const modalText=document.getElementById("modalText");
-const okBtn=document.getElementById("okBtn");
+/* ===== MODAL HELPERS ===== */
+const modal = document.getElementById("modal");
+const modalText = document.getElementById("modalText");
+const okBtn = document.getElementById("okBtn");
 
 function showModal(text){
   modalText.textContent = text;
   okBtn.textContent = "OK";
   modal.classList.add("show");
 }
-okBtn.onclick=()=> modal.classList.remove("show");
+function closeModal(){
+  modal.classList.remove("show");
+}
 
 /* Recharge modal */
 const rechargeModal = document.getElementById("rechargeModal");
@@ -593,6 +588,10 @@ document.getElementById("closeMenuBtn").onclick = () => { menuModal.style.displa
 
 /* Logout */
 document.getElementById("logoutBtn").onclick = async () => {
+  try {
+    if (creditChannel) await supabaseClient.removeChannel(creditChannel);
+  } catch (e) {}
+
   await supabaseClient.auth.signOut();
   location.replace("login.html");
 };
@@ -646,6 +645,86 @@ async function showToolsByRole(){
   adminTools.style.display = (MY_ROLE === "admin") ? "block" : "none";
 }
 
+
+
+async function enablePush(){
+  if(!("serviceWorker" in navigator)) return;
+
+  const perm = await Notification.requestPermission();
+  if(perm !== "granted"){
+    alert("Debes permitir notificaciones");
+    return;
+  }
+
+  const reg = await navigator.serviceWorker.ready;
+
+  const vapidKey = "AQUI_VA_TU_VAPID_PUBLIC_KEY";
+
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: vapidKey
+  });
+
+  const json = sub.toJSON();
+
+  await supabaseClient.from("push_subscriptions").upsert({
+    user_id: (await supabaseClient.auth.getUser()).data.user.id,
+    endpoint: json.endpoint,
+    p256dh: json.keys.p256dh,
+    auth: json.keys.auth
+  });
+
+  alert("Notificaciones activadas ✅");
+}
+
+
+
+
+// =====================
+// REALTIME NOTIF (OWNER)
+// =====================
+let creditChannel = null;
+
+async function startOwnerRealtimeNotif(){
+  // solo owner
+  if (MY_ROLE !== "owner") return;
+
+  const { data: { user }, error } = await supabaseClient.auth.getUser();
+  if (error || !user) return;
+
+  const OWNER_ID = user.id;
+
+  // evita duplicados si recargas perfil o entras varias veces
+  if (creditChannel) {
+    await supabaseClient.removeChannel(creditChannel);
+    creditChannel = null;
+  }
+
+  creditChannel = supabaseClient
+    .channel("owner-credit-events")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "credit_events",
+        filter: `target_user_id=eq.${OWNER_ID}`
+      },
+      (payload) => {
+        const e = payload.new || {};
+        const actor = e.actor_email || "alguien";
+        const amt = (e.amount ?? 0);
+
+        // 🔔 aviso dentro del panel
+        showModal(`➕ Créditos recibidos\n\n👤 ${actor}\n💳 +${amt}\n📩 ${e.target_email || ""}`);
+
+        // refrescar badge
+        refreshNotifBadge();
+      }
+    )
+    .subscribe();
+}
+
 /* ===== NOTIFICATIONS BADGE (OWNER) ===== */
 async function refreshNotifBadge(){
   if(MY_ROLE !== "owner") return;
@@ -671,48 +750,110 @@ async function refreshNotifBadge(){
 }
 
 /* ===== PANEL PRINCIPAL (ACCIÓN) ===== */
-const execute=document.getElementById("execute");
-const loader=document.getElementById("loader");
-const consoleBox=document.getElementById("console");
-const numero=document.getElementById("numero");
-const pais=document.getElementById("pais");
-const okAudio=document.getElementById("okAudio");
+const execute = document.getElementById("execute");
+const loader = document.getElementById("loader");
+const consoleBox = document.getElementById("console");
+const numero = document.getElementById("numero");
+const pais = document.getElementById("pais");
+const okAudio = document.getElementById("okAudio");
 
-let step=0,lastNumber="";
+/* ✅ Anti doble tap + control de pasos */
+let isProcessing = false;
+let step = 0;
+let lastNumber = "";
 
-execute.onclick=async ()=>{
-  await loadMyProfile();
-  if(MY_CREDITS <= 0){
-    showRecharge();
+/* ✅ 1) EJECUTAR: SOLO CONFIRMA (NO COBRA) */
+execute.onclick = async () => {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  try {
+    await loadMyProfile();
+
+    if (MY_CREDITS < 10) {
+      showRecharge();
+      return;
+    }
+
+    if (!numero.value.trim()) return;
+
+    lastNumber = pais.value + " " + numero.value.trim();
+
+    step = 10;
+    showModal(`¿ǫᴜɪᴇʀᴇs ᴅᴀʀʟᴇ ᴅᴇ ʙᴀᴊᴀ ᴀ ᴇsᴛᴇ ʙᴀʙᴏsᴏ?\n\n📱 ${lastNumber}`); // NO cobra aquí
+
+  } finally {
+    isProcessing = false;
+  }
+};
+
+/* ✅ 2) OK: SI step=10 -> COBRA 10 VEZ Y MUESTRA COMPLETADO
+      SI step=2 -> CIERRA Y RECARGA */
+okBtn.onclick = async () => {
+
+  // Confirmación -> cobrar
+  if (step === 10) {
+    if (isProcessing) return;
+    isProcessing = true;
+
+    okBtn.disabled = true;
+    okBtn.textContent = "Procesando...";
+
+    loader.style.display = "block";
+    consoleBox.style.display = "block";
+    consoleBox.innerHTML = "> Procesando...";
+
+    try {
+      const { data: newCredits, error } = await supabaseClient.rpc("consume_credit");
+      if (error) throw error;
+
+      // Sync UI con lo real de Supabase
+      MY_CREDITS = Number(newCredits || 0);
+      document.getElementById("creditsValue").textContent = String(MY_CREDITS);
+      document.getElementById("menuCredits").textContent = String(MY_CREDITS);
+
+      loader.style.display = "none";
+      consoleBox.innerHTML = `> OPERACION COMPLETADA ✅\n`;
+
+      okAudio.play();
+
+      // Cambia modal a completado
+      step = 2;
+      modalText.textContent = `✅ ᴏᴘᴇʀᴀᴄɪᴏɴ ᴄᴏᴍᴘʟᴇᴛᴀᴅᴀ\n\n📱 ${lastNumber}\n\n💳 ᴄʀᴇᴅɪᴛᴏs: ${MY_CREDITS}`;
+      okBtn.textContent = "CERRAR";
+
+    } catch (e) {
+      loader.style.display = "none";
+      consoleBox.innerHTML = `> ❌ Error: ${e.message || "No se pudo descontar"}`;
+
+      // se queda en paso 1 para reintentar
+      step = 10;
+      modalText.textContent = `❌ No se pudo descontar crédito\n\n${e.message || ""}`;
+      okBtn.textContent = "OK";
+
+    } finally {
+      okBtn.disabled = false;
+      okBtn.textContent = (step === 2) ? "CERRAR" : "OK";
+      isProcessing = false;
+    }
+
     return;
   }
 
-  if(!numero.value.trim()) return;
-
-  lastNumber=pais.value+" "+numero.value.trim();
-  loader.style.display="block";
-  consoleBox.style.display="block";
-  consoleBox.innerHTML="> Iniciando proceso...";
-
-  setTimeout(()=>{
-    loader.style.display="none";
-    showModal(`¿QUIERES CONTINUAR?\n\n📱 ${lastNumber}`);
-    step=1;
-  },1200);
-};
-
-document.getElementById("okBtn").onclick=()=>{
-  if(step===1){
-    modalText.textContent=`✅ OPERACIÓN COMPLETADA\n\n${lastNumber}`;
-    okAudio.play();
-    okBtn.textContent="CERRAR";
-    step=2;
-  }else{
+  // Cerrar -> recarga (y el input queda vacío)
+  if (step === 2) {
     modal.classList.remove("show");
+    step = 0;
     location.reload();
+    return;
   }
+
+  // fallback
+  modal.classList.remove("show");
+  step = 0;
 };
 
+/* ===== SERVICE WORKER ===== */
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("service-worker.js");
 }
@@ -893,6 +1034,85 @@ if(loadEventsBtn){
       return `${mapType(e.event_type)}${amt} → ${e.target_email || ""}${actor}\n${when}\n`;
     }).join("\n");
   };
+}
+
+
+// BOTÓN ACTIVAR PUSH (OWNER)
+const enablePushBtn = document.getElementById("enablePushBtn");
+
+if(enablePushBtn){
+  enablePushBtn.onclick = async () => {
+    await enablePushForOwner();
+  };
+}
+
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+
+
+async function enablePushForOwner(){
+  try{
+    if(!("serviceWorker" in navigator)) {
+      showModal("❌ Tu navegador no soporta Service Worker.");
+      return;
+    }
+
+    // iOS/Safari: push requiere PWA instalado en pantalla de inicio
+    if(!window.matchMedia("(display-mode: standalone)").matches && !window.navigator.standalone){
+      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → 'Agregar a pantalla de inicio'.");
+      return;
+    }
+
+    const perm = await Notification.requestPermission();
+    if(perm !== "granted"){
+      showModal("Debes permitir notificaciones.");
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+
+    const vapidPublicKey = "BEdT0xreK0zVUfyriLenJgpsFq3K7jdvL7tUq2eIsbqrBgf_DbQEnGW2zQYUEO8OFwjlo57_55wrFSILmxjrmow";
+    const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: appServerKey
+    });
+
+    const json = sub.toJSON();
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    const { error } = await supabaseClient.from("push_subscriptions").upsert({
+      user_id: user.id,
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth
+    }, { onConflict: "endpoint" });
+
+    if(error){
+      showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
+      return;
+    }
+
+    showModal("✅ Notificaciones activadas");
+  } catch(e){
+    showModal("❌ Error activando push\n\n" + (e.message || e));
+    console.log("enablePushForOwner error:", e);
+  }
 }
 </script>
 
