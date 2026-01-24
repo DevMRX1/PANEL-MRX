@@ -1054,69 +1054,93 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-async function enablePushForOwner() {
-  try {
-    if (!("serviceWorker" in navigator)) {
+async function enablePushForOwner(){
+  try{
+    if(!("serviceWorker" in navigator)) {
       showModal("❌ Tu navegador no soporta Service Worker.");
       return;
     }
 
+    // iOS/Safari: push requiere PWA instalado en pantalla de inicio
+    if(!window.matchMedia("(display-mode: standalone)").matches && !window.navigator.standalone){
+      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → 'Agregar a pantalla de inicio'.");
+      return;
+    }
+
+    // 1) Permiso
     const perm = await Notification.requestPermission();
-    if (perm !== "granted") {
+    if(perm !== "granted"){
       showModal("❌ Debes permitir notificaciones.");
       return;
     }
 
+    // 2) Service worker listo
     const reg = await navigator.serviceWorker.ready;
 
-    // ✅ TU VAPID PUBLIC KEY
-    const vapidPublicKey =
-      "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
+    // ✅ Validación real: pushManager existe?
+    if(!reg.pushManager){
+      showModal("❌ Este navegador no soporta PushManager (push web).");
+      return;
+    }
 
+    const vapidPublicKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
     const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    // ✅ borrar suscripción vieja
-    const oldSub = await reg.pushManager.getSubscription();
-    if (oldSub) await oldSub.unsubscribe();
+    // 3) Usa la subs existente si ya existe (no dependas del segundo click)
+    let sub = await reg.pushManager.getSubscription();
 
-    // ✅ crear nueva suscripción
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: appServerKey,
-    });
+    // Si no existe, crea una nueva
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: appServerKey
+      });
+    }
 
-    console.log("SUB OK:", sub);
+    if(!sub){
+      showModal("❌ No se pudo crear la suscripción (sub vacío).");
+      return;
+    }
 
     const json = sub.toJSON();
-    const { data: { user } } = await supabaseClient.auth.getUser();
-
-    if (!user) {
-      showModal("❌ No hay sesión activa.");
+    if(!json?.endpoint || !json?.keys?.p256dh || !json?.keys?.auth){
+      showModal("❌ Suscripción incompleta (faltan keys).");
+      console.log("SUB JSON:", json);
       return;
     }
 
-    // ✅ guarda 1 subs por usuario
+    // 4) Usuario actual
+    const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
+    if(userErr || !user){
+      showModal("❌ No hay sesión. Vuelve a iniciar sesión.");
+      return;
+    }
+
+    // 5) Guardar en DB
+    const payload = {
+      user_id: user.id,
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      created_at: new Date().toISOString()
+    };
+
+    console.log("Guardando push_subscriptions:", payload);
+
     const { error } = await supabaseClient
       .from("push_subscriptions")
-      .upsert({
-        user_id: user.id,
-        endpoint: json.endpoint,
-        p256dh: json.keys.p256dh,
-        auth: json.keys.auth,
-        created_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
+      .upsert(payload, { onConflict: "user_id" });
 
-    if (error) {
-      console.log("DB ERROR:", error);
+    if(error){
       showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
+      console.log("DB error:", error);
       return;
     }
 
-    showModal("✅ Notificaciones activadas correctamente ✅");
-
-  } catch (e) {
-    console.log("PUSH ERROR:", e);
-    showModal("❌ Error activando push\n\n" + (e.message || e));
+    showModal("✅ Notificaciones activadas");
+  } catch(e){
+    showModal("❌ Error activando push\n\n" + (e?.message || e));
+    console.log("enablePushForOwner error:", e);
   }
 }
 </script>
