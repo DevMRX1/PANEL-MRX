@@ -1,3 +1,6 @@
+/* sw.js */
+
+// (Opcional) cache simple
 const CACHE_NAME = "mrx-cache-v6";
 
 self.addEventListener("install", (event) => {
@@ -12,71 +15,59 @@ self.addEventListener("activate", (event) => {
   })());
 });
 
+// (Opcional) cache de GET
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  event.respondWith((async () => {
-    try {
-      const res = await fetch(event.request);
-      const clone = res.clone();
-
-      if (event.request.url.startsWith("http")) {
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(event.request, clone);
-      }
-      return res;
-    } catch (e) {
-      const cached = await caches.match(event.request);
-      return cached || new Response("Offline", { status: 503 });
-    }
-  })());
+  event.respondWith(
+    fetch(event.request)
+      .then((res) => {
+        const clone = res.clone();
+        if (event.request.url.startsWith("http")) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(event.request))
+  );
 });
 
-// ✅ RECIBIR PUSH Y MOSTRAR NOTIFICACIÓN
+// ✅ PUSH: aquí se muestra la notificación aunque la app esté cerrada
 self.addEventListener("push", (event) => {
-  event.waitUntil((async () => {
-    let data = {};
-    try {
-      data = event.data ? event.data.json() : {};
-    } catch {
-      data = { title: "Notificación", body: event.data?.text?.() || "" };
-    }
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "Notificación", body: event.data?.text?.() || "" };
+  }
 
-    const title = data.title || "Créditos agregados 💳";
-    const options = {
-      body: data.body || "Tienes una actualización.",
-      icon: data.icon || "/icon-192.png",
-      badge: data.badge || "/badge-72.png",
-      data: { url: data.url || "/" },
-      tag: data.tag || "credit-push",
-      renotify: true,
-    };
+  const title = data.title || "MRX";
+  const options = {
+    body: data.body || "Tienes una nueva notificación",
+    icon: data.icon || "/apple-touch-icon.png",
+    badge: data.badge || "/apple-touch-icon.png",
+    data: {
+      url: data.url || "/",
+    },
+  };
 
-    await self.registration.showNotification(title, options);
-  })());
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// ✅ CLICK EN NOTIFICACIÓN
+// ✅ Click en notificación
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const urlToOpen = event.notification?.data?.url || "/";
+  const url = event.notification?.data?.url || "/";
 
   event.waitUntil((async () => {
-    const allClients = await self.clients.matchAll({
-      type: "window",
-      includeUncontrolled: true,
-    });
+    const allClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
 
+    // Si ya hay una ventana abierta, enfócala
     for (const client of allClients) {
-      if ("focus" in client) {
-        await client.focus();
-        try { await client.navigate(urlToOpen); } catch {}
-        return;
-      }
+      if ("focus" in client) return client.focus();
     }
 
-    if (self.clients.openWindow) {
-      await self.clients.openWindow(urlToOpen);
-    }
+    // Si no, abre una nueva
+    if (clients.openWindow) return clients.openWindow(url);
   })());
 });
