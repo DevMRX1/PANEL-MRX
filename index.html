@@ -1088,6 +1088,10 @@ async function enablePushForOwner(){
     const vapidPublicKey = "BEdT0xreK0zVUfyriLenJgpsFq3K7jdvL7tUq2eIsbqrBgf_DbQEnGW2zQYUEO8OFwjlo57_55wrFSILmxjrmow";
     const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
+    // ✅ si había una subs vieja, bórrala y crea una nueva
+    const oldSub = await reg.pushManager.getSubscription();
+    if (oldSub) await oldSub.unsubscribe();
+
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: appServerKey
@@ -1096,12 +1100,16 @@ async function enablePushForOwner(){
     const json = sub.toJSON();
     const { data: { user } } = await supabaseClient.auth.getUser();
 
-    const { error } = await supabaseClient.from("push_subscriptions").upsert({
-      user_id: user.id,
-      endpoint: json.endpoint,
-      p256dh: json.keys.p256dh,
-      auth: json.keys.auth
-    }, { onConflict: "endpoint" });
+    // ✅ guarda 1 subs por usuario
+    const { error } = await supabaseClient
+      .from("push_subscriptions")
+      .upsert({
+        user_id: user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        created_at: new Date().toISOString()
+      }, { onConflict: "user_id" }); // ✅ CAMBIO CLAVE
 
     if(error){
       showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
