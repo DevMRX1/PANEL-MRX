@@ -576,6 +576,23 @@ function closeModal(){
   modal.classList.remove("show");
 }
 
+
+// ✅ MODAL NEUTRAL (no usa step, no toca el flujo de créditos)
+function showPushModal(text){
+  modalText.textContent = text;
+  okBtn.disabled = false;
+  okBtn.textContent = "CERRAR";
+  modal.classList.add("show");
+
+  // importante: este onclick SOLO cierra (no consume créditos, no recarga)
+  okBtn.onclick = () => {
+    modal.classList.remove("show");
+  };
+}
+
+
+
+
 /* Recharge modal */
 const rechargeModal = document.getElementById("rechargeModal");
 document.getElementById("rechargeOk").onclick = () => rechargeModal.classList.remove("show");
@@ -1081,82 +1098,89 @@ function urlBase64ToUint8Array(base64String) {
 
 async function enablePushForOwner(){
   const btn = document.getElementById("enablePushBtn");
+
   try{
     if(btn) btn.disabled = true;
 
-    // ✅ Mensaje visible SIEMPRE
-    showModal("⏳ Iniciando activación de notificaciones...");
+    showPushModal("⏳ Activando notificaciones...");
 
-    if(!("serviceWorker" in navigator)) {
-      showModal("❌ Tu navegador no soporta Service Worker.");
+    // 0) Checks básicos
+    if(!("serviceWorker" in navigator)){
+      showPushModal("❌ Este navegador no soporta Service Worker.");
+      return;
+    }
+    if(!("PushManager" in window)){
+      showPushModal("❌ Este navegador no soporta Push (PushManager).");
       return;
     }
 
-    // iOS/Safari: push requiere PWA instalado en pantalla de inicio
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    // 1) En iOS: debe ser PWA instalada (icono en pantalla de inicio)
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone;
+
     if(!isStandalone){
-      showModal("📲 Para activar notificaciones, instala la app:\nSafari → Compartir → 'Agregar a pantalla de inicio'.\n\nLuego ábrela desde el ícono.");
+      showPushModal(
+        "📲 Para activar notificaciones en iPhone/iPad:\n\n" +
+        "1) Safari → Compartir → 'Agregar a pantalla de inicio'\n" +
+        "2) Abre la app desde el ícono (NO desde Safari)\n" +
+        "3) Vuelve a tocar 'Activar notificaciones'"
+      );
       return;
     }
 
-    // 1) Permiso
+    // 2) Asegurar que el SW esté registrado (EN RAÍZ)
+    // ⚠️ IMPORTANTE: /sw.js debe existir en https://TU-DOMINIO/sw.js
+    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    await navigator.serviceWorker.ready;
+
+    // 3) Permiso (en segundo click ya NO sale popup porque ya está granted)
     const perm = await Notification.requestPermission();
     if(perm !== "granted"){
-      showModal("❌ Permiso de notificaciones NO concedido.");
+      showPushModal("❌ No concediste el permiso de notificaciones.");
       return;
     }
 
-    // 2) Service Worker listo (usa el que registramos arriba)
-    const reg = SW_REG || await navigator.serviceWorker.ready;
+    // 4) Suscripción push
+    showPushModal("⏳ Creando suscripción push...");
 
-    if(!reg){
-      showModal("❌ No pude obtener el Service Worker (reg null).");
-      return;
-    }
+    const readyReg = await navigator.serviceWorker.ready;
 
-    if(!reg.pushManager){
-      showModal("❌ Este navegador no soporta PushManager (push web).");
-      return;
-    }
+    // si ya existe, úsala
+    let sub = await readyReg.pushManager.getSubscription();
 
     const vapidPublicKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
     const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    // 3) Crear/usar suscripción
-    showModal("⏳ Creando suscripción push...");
-
-    let sub = await reg.pushManager.getSubscription();
-
-    // si no existe, crea
     if(!sub){
-      sub = await reg.pushManager.subscribe({
+      sub = await readyReg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: appServerKey
       });
     }
 
     if(!sub){
-      showModal("❌ No se pudo crear la suscripción (sub vacío).");
+      showPushModal("❌ No se pudo crear la suscripción (sub vacío).");
       return;
     }
 
     const json = sub.toJSON();
     if(!json?.endpoint || !json?.keys?.p256dh || !json?.keys?.auth){
-      showModal("❌ Suscripción incompleta (faltan keys).");
+      showPushModal("❌ Suscripción incompleta (faltan keys).");
       return;
     }
 
-    // 4) Usuario
-    showModal("⏳ Obteniendo usuario...");
+    // 5) Usuario logueado
+    showPushModal("⏳ Guardando en base de datos...");
+
     const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
     if(userErr || !user){
-      showModal("❌ No hay sesión. Vuelve a iniciar sesión.");
+      showPushModal("❌ No hay sesión. Vuelve a iniciar sesión.");
       return;
     }
 
-    // 5) Guardar en DB
-    showModal("⏳ Guardando en la tabla push_subscriptions...");
-
+    // 6) Guardar en tabla
+    // ✅ IMPORTANTE: para upsert con onConflict, tu tabla debe tener UNIQUE(user_id)
     const payload = {
       user_id: user.id,
       endpoint: json.endpoint,
@@ -1170,18 +1194,16 @@ async function enablePushForOwner(){
       .upsert(payload, { onConflict: "user_id" });
 
     if(error){
-      showModal("❌ No se pudo guardar en push_subscriptions:\n\n" + error.message);
+      showPushModal("❌ Error guardando en push_subscriptions:\n\n" + error.message);
       return;
     }
 
-    // ✅ Confirmación final (ya no depende de “segundo click”)
-    showModal("✅ Notificaciones activadas y guardadas en la tabla.");
-
-    // opcional: cambia texto del botón para que se note
+    showPushModal("✅ Notificaciones activadas y registradas en la tabla.");
     if(btn) btn.textContent = "✅ Notificaciones activadas";
+
   } catch(e){
-    showModal("❌ Error activando push:\n\n" + (e?.message || e));
-    console.log("enablePushForOwner error:", e);
+    showPushModal("❌ Falló activación:\n\n" + (e?.message || e));
+    console.log("enablePushForOwner:", e);
   } finally {
     if(btn) btn.disabled = false;
   }
