@@ -49,3 +49,28 @@ self.addEventListener("fetch", (event) => {
 
   );
 });
+
+// ✅ PUSH: mostrar notificación cuando llegue
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {}
+
+  const title = data.title || "PANEL MRX";
+  const options = {
+    body: data.body || "Tienes una actualización",
+    icon: "/apple-touch-icon.png",
+    badge: "/apple-touch-icon.png",
+    data: { url: data.url || "/" }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// ✅ al tocar la notificación, abrir el panel
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification?.data?.url || "/";
+  event.waitUntil(clients.openWindow(url));
+});
