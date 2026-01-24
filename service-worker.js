@@ -62,12 +62,14 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil((async () => {
     const allClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
 
-    // Si ya hay una ventana abierta, enfócala
     for (const client of allClients) {
-      if ("focus" in client) return client.focus();
+      if ("focus" in client) {
+        await client.focus();
+        if ("navigate" in client) await client.navigate(url);
+        return;
+      }
     }
 
-    // Si no, abre una nueva
-    if (clients.openWindow) return clients.openWindow(url);
+    if (clients.openWindow) await clients.openWindow(url);
   })());
 });
