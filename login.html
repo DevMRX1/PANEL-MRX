@@ -6,6 +6,16 @@
 <!-- ✅ VIEWPORT iOS PWA + Safe area -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
+<!-- ✅ PWA (OBLIGATORIO PARA iOS cuando instalas desde login.html) -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- ✅ iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="PANEL MRX">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
 <title>LOGIN MRX</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -460,7 +470,7 @@ async function login(){
   if(error){
     msg.innerText = error.message;
   }else{
-    location.href = "index.html";
+    location.href = "/index.html";
   }
 }
 
