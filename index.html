@@ -790,16 +790,20 @@ async function hasSubscriptionInDb(userId){
 // muestra modal si falta activar
 async function maybeShowPushBanner(){
   try{
+    // ✅ si eres OWNER, NO mostrar el modal grande automático
+    if (MY_ROLE === "owner") return;
+
     if(!("serviceWorker" in navigator)) return;
 
     const { data: { user } } = await supabaseClient.auth.getUser();
     if(!user) return;
 
-    // si el usuario le dio "Ahora no", no molestes por 24h
     const hideUntil = Number(localStorage.getItem("push_hide_until") || "0");
     if(Date.now() < hideUntil) return;
 
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone;
 
     if(!isStandalone){
       openPushModal("📲 Para notificaciones en iPhone/iPad: Safari → Compartir → Agregar a pantalla de inicio. Luego abre desde el ícono y activa aquí.");
@@ -819,14 +823,32 @@ async function maybeShowPushBanner(){
 
 async function enablePushForAllUsers(){
   try{
-    if(!("serviceWorker" in navigator)){
-      showModal("❌ Este navegador no soporta notificaciones.");
+    const hasNotif = (typeof Notification !== "undefined");
+    const hasSW = ("serviceWorker" in navigator);
+    const hasPush = ("PushManager" in window);
+
+    // ✅ si el navegador no soporta, NO tocar Notification
+    if(!hasNotif || !hasSW || !hasPush){
+      showModal("❌ Este navegador no soporta notificaciones.\n\nEn iPhone: instala la app (Agregar a pantalla de inicio) y abre desde el ícono.");
       return;
     }
 
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    // ✅ si ya está activado
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(user){
+      const alreadyInDb = await hasSubscriptionInDb(user.id);
+      if (Notification.permission === "granted" && alreadyInDb) {
+        showModal("✅ Notificaciones activadas");
+        return;
+      }
+    }
+
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone;
+
     if(!isStandalone){
-      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → Agregar a pantalla de inicio.");
+      showModal("📲 Para activar notificaciones en iPhone:\nSafari → Compartir → Agregar a pantalla de inicio.\nLuego abre desde el ícono y activa aquí.");
       return;
     }
 
@@ -849,13 +871,13 @@ async function enablePushForAllUsers(){
     });
 
     const json = sub.toJSON();
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) throw new Error("No hay usuario logueado.");
+    const { data: { user: user2 } } = await supabaseClient.auth.getUser();
+    if(!user2) throw new Error("No hay usuario logueado.");
 
     const { error } = await supabaseClient
       .from("push_subscriptions")
       .upsert({
-        user_id: user.id,
+        user_id: user2.id,
         endpoint: json.endpoint,
         p256dh: json.keys.p256dh,
         auth: json.keys.auth,
@@ -890,11 +912,14 @@ if(pushModalLaterBtn){
   };
 }
 
-// ✅ BOTÓN DEL OWNER (MENÚ) -> ABRE MODAL Y ACTIVA
+// ✅ BOTÓN DEL OWNER (MENÚ) -> NO ABRE pushModal, solo activa y muestra resultado
 const enablePushBtn = document.getElementById("enablePushBtn");
 if (enablePushBtn) {
   enablePushBtn.onclick = async () => {
-    openPushModal("🔔 Activa notificaciones para recibir avisos de créditos");
+    // ✅ Por si el modal grande quedó abierto por otra cosa, lo cerramos
+    closePushModal();
+
+    // ✅ Intenta activar (y si ya está activo, mostrará "Notificaciones activadas")
     await enablePushForAllUsers();
   };
 }
