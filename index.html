@@ -870,7 +870,6 @@ okBtn.onclick = async () => {
   step = 0;
 };
 
-/* ===== SERVICE WORKER ===== */
 // ===== SERVICE WORKER (REGISTRO FUERTE + DEBUG) =====
 let SW_REG = null;
 
@@ -882,7 +881,7 @@ async function initServiceWorker(){
     }
 
     // registra con scope raíz
-    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
 
     // iOS a veces necesita un update
     try { await reg.update(); } catch(e){}
@@ -1131,7 +1130,7 @@ async function enablePushForOwner(){
 
     // 2) Asegurar que el SW esté registrado (EN RAÍZ)
     // ⚠️ IMPORTANTE: /sw.js debe existir en https://TU-DOMINIO/sw.js
-    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
     await navigator.serviceWorker.ready;
 
     // 3) Permiso (en segundo click ya NO sale popup porque ya está granted)
