@@ -324,6 +324,62 @@ button:active{transform:scale(.97)}
   background:linear-gradient(90deg,transparent,rgba(0,224,255,.35),transparent);
   margin:10px 0;
 }
+
+
+
+/* ===== OWNER EVENTS BOX (TOGGLE + NO PUSH FE0) ===== */
+.eventsBox{
+  margin-top:10px;
+  font-family:monospace;
+  font-size:12px;
+  white-space:normal;
+  overflow:auto;
+
+  /* cerrado por defecto */
+  display:none;
+
+  /* no empuja feo */
+  max-height:220px;
+  padding:10px;
+  border-radius:14px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+/* texto dentro */
+.event-title{ font-weight:900; margin-bottom:4px; }
+.event-meta{ opacity:.85; font-size:11px; line-height:1.25; }
+.event-when{ opacity:.65; font-size:10px; margin-top:6px; }
+
+/* indicador de borrar */
+.event-delete-hint{
+  position:absolute;
+  top:0; bottom:0; right:0;
+  width:90px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:14px;
+  background:rgba(255,59,59,.20);
+  color:#ff6b6b;
+  font-weight:900;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s ease;
+}
+.event-item.swiping .event-delete-hint{ opacity:1; }
+
+.event-item{
+  background: rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:8px;
+  font-family:monospace;
+  font-size:12px;
+  white-space:pre-line;
+  transition:0.2s;
+}
 </style>
 </head>
 
@@ -465,7 +521,7 @@ button:active{transform:scale(.97)}
         ᴠᴇʀ ɴᴏᴛɪꜰɪᴄᴀᴄɪᴏɴᴇs
       </button>
 
-      <div id="eventsBox" style="margin-top:10px;font-family:monospace;font-size:12px;white-space:pre-line;max-height:160px;overflow:auto;"></div>
+      <div id="eventsBox" class="eventsBox"></div>
 
       <button id="enablePushBtn" style="margin-top:12px;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
         🔔 Activar notificaciones
@@ -834,6 +890,18 @@ if(pushModalLaterBtn){
   };
 }
 
+// ✅ BOTÓN DEL OWNER (MENÚ) -> ABRE MODAL Y ACTIVA
+const enablePushBtn = document.getElementById("enablePushBtn");
+if (enablePushBtn) {
+  enablePushBtn.onclick = async () => {
+    openPushModal("🔔 Activa notificaciones para recibir avisos de créditos");
+    await enablePushForAllUsers();
+  };
+}
+
+
+
+
 /* =====================
    REALTIME NOTIF (OWNER)
    ===================== */
@@ -1137,52 +1205,88 @@ if(removeAdminBtn){
 
 /* Owner: ver notificaciones */
 const loadEventsBtn = document.getElementById("loadEventsBtn");
-if(loadEventsBtn){
+if (loadEventsBtn) {
   loadEventsBtn.onclick = async () => {
     const box = document.getElementById("eventsBox");
+
+    // ✅ TOGGLE: si ya está abierto, ciérralo y listo
+    if (box.style.display === "block") {
+      box.style.display = "none";
+      return;
+    }
+
+    box.style.display = "block";
     box.textContent = "Cargando...";
 
     const { data, error } = await supabaseClient.rpc("get_recent_events", { p_limit: 30 });
-    if(error){
+    if (error) {
       box.textContent = "❌ " + (error.message || "Error");
       return;
     }
 
     const list = data || [];
-    if(list.length === 0){
+    if (list.length === 0) {
       box.textContent = "Sin notificaciones aún.";
       return;
     }
 
+    // ✅ marcar como visto (para el badge)
     localStorage.setItem("eventsLastSeenId", String(list[0].id));
     await refreshNotifBadge();
 
     const mapType = (t) => {
-      if(t === "CREDIT_ADD") return "➕ Créditos";
-      if(t === "CREDIT_REMOVE") return "➖ Créditos";
-      if(t === "MAKE_ADMIN") return "👑 Dar admin";
-      if(t === "REMOVE_ADMIN") return "❌ Quitar admin";
+      if (t === "CREDIT_ADD") return "➕ Créditos";
+      if (t === "CREDIT_REMOVE") return "➖ Créditos";
+      if (t === "MAKE_ADMIN") return "👑 Dar admin";
+      if (t === "REMOVE_ADMIN") return "❌ Quitar admin";
       return t;
     };
 
-    box.textContent = list.map(e => {
-      const when = new Date(e.created_at).toLocaleString();
-      const amt = (e.amount == null) ? "" : ` (${e.amount})`;
-      const actor = e.actor_email ? ` | ${e.actor_email}` : "";
-      return `${mapType(e.event_type)}${amt} → ${e.target_email || ""}${actor}\n${when}\n`;
-    }).join("\n");
-  };
-}
+    box.innerHTML = "";
 
-/* BOTÓN ACTIVAR PUSH (OWNER) - se mantiene */
-const enablePushBtn = document.getElementById("enablePushBtn");
-if (enablePushBtn) {
-  enablePushBtn.onclick = async () => {
-    // Si quieres que este botón haga lo mismo que el modal para todos:
-    await enablePushForAllUsers();
+    // ✅ solo se oculta en el celular (localStorage), NO en la base de datos
+    const dismissed = JSON.parse(localStorage.getItem("dismissedEventIds") || "[]");
+
+    list.forEach((ev) => {
+      if (dismissed.includes(ev.id)) return;
+
+      const when = new Date(ev.created_at).toLocaleString();
+      const amt = (ev.amount == null) ? "" : ` (${ev.amount})`;
+      const actor = ev.actor_email ? ` | ${ev.actor_email}` : "";
+
+      const text = `${mapType(ev.event_type)}${amt} → ${ev.target_email || ""}${actor}\n${when}`;
+
+      const item = document.createElement("div");
+      item.className = "event-item";
+      item.textContent = text;
+
+      let startX = 0;
+
+      item.addEventListener("touchstart", (te) => {
+        startX = te.touches[0].clientX;
+      }, { passive: true });
+
+      item.addEventListener("touchend", (te) => {
+        const endX = te.changedTouches[0].clientX;
+        const diff = endX - startX;
+
+        // swipe izquierda
+        if (diff < -80) {
+          item.style.transition = "0.2s";
+          item.style.transform = "translateX(-100%)";
+          item.style.opacity = "0";
+
+          dismissed.push(ev.id);
+          localStorage.setItem("dismissedEventIds", JSON.stringify(dismissed));
+
+          setTimeout(() => item.remove(), 200);
+        }
+      }, { passive: true });
+
+      box.appendChild(item);
+    });
   };
 }
 </script>
-
 </body>
 </html>
