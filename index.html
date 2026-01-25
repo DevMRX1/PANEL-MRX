@@ -354,6 +354,19 @@ button:active{transform:scale(.97)}
     👤 𝚁𝚘𝚕: <b id="roleValue">𝕮𝖆𝖗𝖌𝖆𝖓𝖉𝖔…</b>
   </div>
 
+
+
+<!-- PUSH BANNER (para todos) -->
+<div id="pushBanner" style="display:none;margin-top:10px;text-align:center;">
+  <div style="font-size:12px;opacity:.9;margin-bottom:8px;">
+    🔔 Activa notificaciones para recibir avisos de créditos
+  </div>
+  <button id="pushEnableBtn" style="width:90%;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
+    Activar notificaciones
+  </button>
+</div>
+
+
   <div class="glowline"></div>
 
   <!-- (Texto neutral) -->
@@ -559,8 +572,12 @@ const supabaseClient = createClient(
     await showToolsByRole();
     await refreshNotifBadge();
     await startOwnerRealtimeNotif(); // ✅ IMPORTANTE
+	 await maybeShowPushBanner();
   }
 })();
+
+
+
 
 /* ===== MODAL HELPERS ===== */
 const modal = document.getElementById("modal");
@@ -1207,6 +1224,145 @@ async function enablePushForOwner(){
     if(btn) btn.disabled = false;
   }
 }
+
+
+
+
+
+
+// =====================
+// PUSH PARA TODOS (USER/ADMIN/OWNER)
+// =====================
+const VAPID_PUBLIC_KEY = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
+
+const pushBanner = document.getElementById("pushBanner");
+const pushEnableBtn = document.getElementById("pushEnableBtn");
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function hasSubscriptionInDb(userId){
+  // si tienes RLS, asegúrate que el usuario pueda leer su propia subs (policy)
+  const { data, error } = await supabaseClient
+    .from("push_subscriptions")
+    .select("user_id")
+    .eq("user_id", userId)
+    .limit(1);
+
+  if(error){
+    console.log("No pude revisar push_subscriptions:", error);
+    return false;
+  }
+  return (data && data.length > 0);
+}
+
+// muestra banner si falta activar
+async function maybeShowPushBanner(){
+  try{
+    if(!("serviceWorker" in navigator)) return;
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return;
+
+    // iOS/Safari: push requiere PWA instalada
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if(!isStandalone){
+      // igual puedes mostrar el banner con el mensaje de "instala la app"
+      pushBanner.style.display = "block";
+      pushEnableBtn.onclick = () => showModal("📲 Para notificaciones en iPhone/iPad: Safari → Compartir → Agregar a pantalla de inicio.");
+      return;
+    }
+
+    const perm = Notification.permission; // "default" | "granted" | "denied"
+    const alreadyInDb = await hasSubscriptionInDb(user.id);
+
+    if(perm !== "granted" || !alreadyInDb){
+      pushBanner.style.display = "block";
+    }else{
+      pushBanner.style.display = "none";
+    }
+  }catch(e){
+    console.log("maybeShowPushBanner error:", e);
+  }
+}
+
+async function enablePushForAllUsers(){
+  try{
+    if(!("serviceWorker" in navigator)){
+      showModal("❌ Este navegador no soporta notificaciones.");
+      return;
+    }
+
+    // iOS/Safari: PWA instalada
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if(!isStandalone){
+      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → Agregar a pantalla de inicio.");
+      return;
+    }
+
+    // pedir permiso (solo con click)
+    const perm = await Notification.requestPermission();
+    if(perm !== "granted"){
+      showModal("❌ Debes permitir notificaciones.");
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+
+    // si había una subs vieja, bórrala
+    const oldSub = await reg.pushManager.getSubscription();
+    if(oldSub) await oldSub.unsubscribe();
+
+    const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: appServerKey
+    });
+
+    const json = sub.toJSON();
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) throw new Error("No hay usuario logueado.");
+
+    // ✅ guarda 1 subs por usuario
+    const { error } = await supabaseClient
+      .from("push_subscriptions")
+      .upsert({
+        user_id: user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        created_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+
+    if(error){
+      showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
+      return;
+    }
+
+    showModal("✅ Notificaciones activadas");
+    pushBanner.style.display = "none";
+
+  }catch(e){
+    console.log("enablePushForAllUsers error:", e);
+    showModal("❌ Error activando notificaciones\n\n" + (e.message || e));
+  }
+}
+
+// click del banner
+if(pushEnableBtn){
+  pushEnableBtn.onclick = async () => {
+    await enablePushForAllUsers();
+  };
+}
+
+
 </script>
 
 </body>
