@@ -62,12 +62,19 @@ body{
 }
 
 #bgImage{
-  position:fixed; inset:0;
-  width:100%; height:100%;
-  object-fit:cover;
-  filter:blur(10px);
-  opacity:.55;
-  z-index:-1;
+  position: fixed;
+  left: 0; top: 0;
+  width: 100vw;
+  height: 100vh;              /* 👈 clave */
+  object-fit: cover;
+  object-position: center;    /* 👈 clave */
+  filter: blur(10px);
+  opacity: .55;
+  z-index: -1;
+
+  transform: translateZ(0);   /* 👈 reduce “saltitos” */
+  will-change: transform;
+  pointer-events: none;
 }
 .panel{
   width:90%; max-width:360px;
