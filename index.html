@@ -354,19 +354,6 @@ button:active{transform:scale(.97)}
     👤 𝚁𝚘𝚕: <b id="roleValue">𝕮𝖆𝖗𝖌𝖆𝖓𝖉𝖔…</b>
   </div>
 
-
-
-<!-- PUSH BANNER (para todos) -->
-<div id="pushBanner" style="display:none;margin-top:10px;text-align:center;">
-  <div style="font-size:12px;opacity:.9;margin-bottom:8px;">
-    🔔 Activa notificaciones para recibir avisos de créditos
-  </div>
-  <button id="pushEnableBtn" style="width:90%;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
-    Activar notificaciones
-  </button>
-</div>
-
-
   <div class="glowline"></div>
 
   <!-- (Texto neutral) -->
@@ -408,6 +395,19 @@ button:active{transform:scale(.97)}
   <div class="modal-box">
     <p id="modalText"></p>
     <button id="okBtn">ＯＫ</button>
+  </div>
+</div>
+
+<!-- ✅ PUSH MODAL (VENTANA TRANSPARENTE) -->
+<div class="modal" id="pushModal">
+  <div class="modal-box">
+    <p id="pushModalText">🔔 Activa notificaciones para recibir avisos de créditos</p>
+    <button id="pushModalEnableBtn" style="width:100%;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
+      Activar notificaciones
+    </button>
+    <button id="pushModalLaterBtn" style="margin-top:10px;width:100%;background:#333;">
+      Ahora no
+    </button>
   </div>
 </div>
 
@@ -467,11 +467,9 @@ button:active{transform:scale(.97)}
 
       <div id="eventsBox" style="margin-top:10px;font-family:monospace;font-size:12px;white-space:pre-line;max-height:160px;overflow:auto;"></div>
 
-
-
-<button id="enablePushBtn" style="margin-top:12px;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
-  🔔 Activar notificaciones
-</button>
+      <button id="enablePushBtn" style="margin-top:12px;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
+        🔔 Activar notificaciones
+      </button>
  
       <div id="ownerMsg" class="small"></div>
     </div>
@@ -572,17 +570,17 @@ const supabaseClient = createClient(
     await showToolsByRole();
     await refreshNotifBadge();
     await startOwnerRealtimeNotif(); // ✅ IMPORTANTE
-	 await maybeShowPushBanner();
+    await maybeShowPushBanner();     // ✅ modal push para todos
   }
 })();
-
-
-
 
 /* ===== MODAL HELPERS ===== */
 const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
 const okBtn = document.getElementById("okBtn");
+
+// ✅ guarda el handler original del OK (para no romper tu step)
+let originalOkHandler = null;
 
 function showModal(text){
   modalText.textContent = text;
@@ -592,23 +590,6 @@ function showModal(text){
 function closeModal(){
   modal.classList.remove("show");
 }
-
-
-// ✅ MODAL NEUTRAL (no usa step, no toca el flujo de créditos)
-function showPushModal(text){
-  modalText.textContent = text;
-  okBtn.disabled = false;
-  okBtn.textContent = "CERRAR";
-  modal.classList.add("show");
-
-  // importante: este onclick SOLO cierra (no consume créditos, no recarga)
-  okBtn.onclick = () => {
-    modal.classList.remove("show");
-  };
-}
-
-
-
 
 /* Recharge modal */
 const rechargeModal = document.getElementById("rechargeModal");
@@ -679,48 +660,186 @@ async function showToolsByRole(){
   adminTools.style.display = (MY_ROLE === "admin") ? "block" : "none";
 }
 
+/* =====================
+   SERVICE WORKER (REGISTRO FUERTE + DEBUG)
+   ===================== */
+let SW_REG = null;
 
+async function initServiceWorker(){
+  try{
+    if(!("serviceWorker" in navigator)) {
+      console.log("No SW");
+      return null;
+    }
 
-async function enablePush(){
-  if(!("serviceWorker" in navigator)) return;
+    const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
 
-  const perm = await Notification.requestPermission();
-  if(perm !== "granted"){
-    alert("Debes permitir notificaciones");
-    return;
+    try { await reg.update(); } catch(e){}
+
+    SW_REG = await navigator.serviceWorker.ready;
+    return SW_REG;
+  }catch(e){
+    console.log("SW init error:", e);
+    return null;
   }
+}
+initServiceWorker();
 
-  const reg = await navigator.serviceWorker.ready;
+/* =====================
+   PUSH PARA TODOS (MODAL TRANSPARENTE)
+   ===================== */
 
-  const vapidKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
+// ✅ SOLO 1 VEZ (antes lo tenías duplicado y rompía todo)
+const VAPID_PUBLIC_KEY = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
 
-  const sub = await reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: vapidKey
-  });
-
-  const json = sub.toJSON();
-
-  await supabaseClient.from("push_subscriptions").upsert({
-    user_id: (await supabaseClient.auth.getUser()).data.user.id,
-    endpoint: json.endpoint,
-    p256dh: json.keys.p256dh,
-    auth: json.keys.auth
-  });
-
-  alert("Notificaciones activadas ✅");
+// ✅ SOLO 1 VEZ (antes lo tenías duplicado)
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
 }
 
+// Modal push elements
+const pushModal = document.getElementById("pushModal");
+const pushModalText = document.getElementById("pushModalText");
+const pushModalEnableBtn = document.getElementById("pushModalEnableBtn");
+const pushModalLaterBtn = document.getElementById("pushModalLaterBtn");
 
+function openPushModal(msg){
+  // NO toques okBtn.onclick (eso rompía tu flujo)
+  if(pushModalText && msg) pushModalText.textContent = msg;
+  pushModal.classList.add("show");
+}
+function closePushModal(){
+  pushModal.classList.remove("show");
+}
 
+async function hasSubscriptionInDb(userId){
+  const { data, error } = await supabaseClient
+    .from("push_subscriptions")
+    .select("user_id")
+    .eq("user_id", userId)
+    .limit(1);
 
-// =====================
-// REALTIME NOTIF (OWNER)
-// =====================
+  if(error){
+    console.log("No pude revisar push_subscriptions:", error);
+    return false;
+  }
+  return (data && data.length > 0);
+}
+
+// muestra modal si falta activar
+async function maybeShowPushBanner(){
+  try{
+    if(!("serviceWorker" in navigator)) return;
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return;
+
+    // si el usuario le dio "Ahora no", no molestes por 24h
+    const hideUntil = Number(localStorage.getItem("push_hide_until") || "0");
+    if(Date.now() < hideUntil) return;
+
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+
+    if(!isStandalone){
+      openPushModal("📲 Para notificaciones en iPhone/iPad: Safari → Compartir → Agregar a pantalla de inicio. Luego abre desde el ícono y activa aquí.");
+      return;
+    }
+
+    const perm = Notification.permission;
+    const alreadyInDb = await hasSubscriptionInDb(user.id);
+
+    if(perm !== "granted" || !alreadyInDb){
+      openPushModal("🔔 Activa notificaciones para recibir avisos de créditos");
+    }
+  }catch(e){
+    console.log("maybeShowPushBanner error:", e);
+  }
+}
+
+async function enablePushForAllUsers(){
+  try{
+    if(!("serviceWorker" in navigator)){
+      showModal("❌ Este navegador no soporta notificaciones.");
+      return;
+    }
+
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if(!isStandalone){
+      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → Agregar a pantalla de inicio.");
+      return;
+    }
+
+    const perm = await Notification.requestPermission();
+    if(perm !== "granted"){
+      showModal("❌ Debes permitir notificaciones.");
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+
+    const oldSub = await reg.pushManager.getSubscription();
+    if(oldSub) await oldSub.unsubscribe();
+
+    const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: appServerKey
+    });
+
+    const json = sub.toJSON();
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) throw new Error("No hay usuario logueado.");
+
+    const { error } = await supabaseClient
+      .from("push_subscriptions")
+      .upsert({
+        user_id: user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        created_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+
+    if(error){
+      showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
+      return;
+    }
+
+    showModal("✅ Notificaciones activadas");
+    closePushModal();
+
+  }catch(e){
+    console.log("enablePushForAllUsers error:", e);
+    showModal("❌ Error activando notificaciones\n\n" + (e.message || e));
+  }
+}
+
+// botones del modal push
+if(pushModalEnableBtn){
+  pushModalEnableBtn.onclick = async () => {
+    await enablePushForAllUsers();
+  };
+}
+
+if(pushModalLaterBtn){
+  pushModalLaterBtn.onclick = () => {
+    localStorage.setItem("push_hide_until", String(Date.now() + 24*60*60*1000));
+    closePushModal();
+  };
+}
+
+/* =====================
+   REALTIME NOTIF (OWNER)
+   ===================== */
 let creditChannel = null;
 
 async function startOwnerRealtimeNotif(){
-  // solo owner
   if (MY_ROLE !== "owner") return;
 
   const { data: { user }, error } = await supabaseClient.auth.getUser();
@@ -728,7 +847,6 @@ async function startOwnerRealtimeNotif(){
 
   const OWNER_ID = user.id;
 
-  // evita duplicados si recargas perfil o entras varias veces
   if (creditChannel) {
     await supabaseClient.removeChannel(creditChannel);
     creditChannel = null;
@@ -749,10 +867,7 @@ async function startOwnerRealtimeNotif(){
         const actor = e.actor_email || "alguien";
         const amt = (e.amount ?? 0);
 
-        // 🔔 aviso dentro del panel
         showModal(`➕ Créditos recibidos\n\n👤 ${actor}\n💳 +${amt}\n📩 ${e.target_email || ""}`);
-
-        // refrescar badge
         refreshNotifBadge();
       }
     )
@@ -814,7 +929,7 @@ execute.onclick = async () => {
     lastNumber = pais.value + " " + numero.value.trim();
 
     step = 10;
-    showModal(`¿ǫᴜɪᴇʀᴇs ᴅᴀʀʟᴇ ᴅᴇ ʙᴀᴊᴀ ᴀ ᴇsᴛᴇ ʙᴀʙᴏsᴏ?\n\n📱 ${lastNumber}`); // NO cobra aquí
+    showModal(`¿ǫᴜɪᴇʀᴇs ᴅᴀʀʟᴇ ᴅᴇ ʙᴀᴊᴀ ᴀ ᴇsᴛᴇ ʙᴀʙᴏsᴏ?\n\n📱 ${lastNumber}`);
 
   } finally {
     isProcessing = false;
@@ -825,7 +940,6 @@ execute.onclick = async () => {
       SI step=2 -> CIERRA Y RECARGA */
 okBtn.onclick = async () => {
 
-  // Confirmación -> cobrar
   if (step === 10) {
     if (isProcessing) return;
     isProcessing = true;
@@ -841,7 +955,6 @@ okBtn.onclick = async () => {
       const { data: newCredits, error } = await supabaseClient.rpc("consume_credit");
       if (error) throw error;
 
-      // Sync UI con lo real de Supabase
       MY_CREDITS = Number(newCredits || 0);
       document.getElementById("creditsValue").textContent = String(MY_CREDITS);
       document.getElementById("menuCredits").textContent = String(MY_CREDITS);
@@ -851,7 +964,6 @@ okBtn.onclick = async () => {
 
       okAudio.play();
 
-      // Cambia modal a completado
       step = 2;
       modalText.textContent = `✅ ᴏᴘᴇʀᴀᴄɪᴏɴ ᴄᴏᴍᴘʟᴇᴛᴀᴅᴀ\n\n📱 ${lastNumber}\n\n💳 ᴄʀᴇᴅɪᴛᴏs: ${MY_CREDITS}`;
       okBtn.textContent = "CERRAR";
@@ -860,7 +972,6 @@ okBtn.onclick = async () => {
       loader.style.display = "none";
       consoleBox.innerHTML = `> ❌ Error: ${e.message || "No se pudo descontar"}`;
 
-      // se queda en paso 1 para reintentar
       step = 10;
       modalText.textContent = `❌ No se pudo descontar crédito\n\n${e.message || ""}`;
       okBtn.textContent = "OK";
@@ -874,7 +985,6 @@ okBtn.onclick = async () => {
     return;
   }
 
-  // Cerrar -> recarga (y el input queda vacío)
   if (step === 2) {
     modal.classList.remove("show");
     step = 0;
@@ -882,39 +992,9 @@ okBtn.onclick = async () => {
     return;
   }
 
-  // fallback
   modal.classList.remove("show");
   step = 0;
 };
-
-// ===== SERVICE WORKER (REGISTRO FUERTE + DEBUG) =====
-let SW_REG = null;
-
-async function initServiceWorker(){
-  try{
-    if(!("serviceWorker" in navigator)) {
-      console.log("No SW");
-      return null;
-    }
-
-    // registra con scope raíz
-    const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
-
-    // iOS a veces necesita un update
-    try { await reg.update(); } catch(e){}
-
-    // espera a que esté listo
-    SW_REG = await navigator.serviceWorker.ready;
-
-    return SW_REG;
-  }catch(e){
-    console.log("SW init error:", e);
-    return null;
-  }
-}
-
-// inicializa apenas carga
-initServiceWorker();
 
 /* ===== ADMIN/OWNER ACTIONS (RPC) ===== */
 function cleanEmail(v){ return (v || "").trim().toLowerCase(); }
@@ -1094,275 +1174,14 @@ if(loadEventsBtn){
   };
 }
 
-
-// BOTÓN ACTIVAR PUSH (OWNER)
+/* BOTÓN ACTIVAR PUSH (OWNER) - se mantiene */
 const enablePushBtn = document.getElementById("enablePushBtn");
 if (enablePushBtn) {
   enablePushBtn.onclick = async () => {
-    await enablePushForOwner();
-  };
-}
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
-  return outputArray;
-}
-
-async function enablePushForOwner(){
-  const btn = document.getElementById("enablePushBtn");
-
-  try{
-    if(btn) btn.disabled = true;
-
-    showPushModal("⏳ Activando notificaciones...");
-
-    // 0) Checks básicos
-    if(!("serviceWorker" in navigator)){
-      showPushModal("❌ Este navegador no soporta Service Worker.");
-      return;
-    }
-    if(!("PushManager" in window)){
-      showPushModal("❌ Este navegador no soporta Push (PushManager).");
-      return;
-    }
-
-    // 1) En iOS: debe ser PWA instalada (icono en pantalla de inicio)
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone;
-
-    if(!isStandalone){
-      showPushModal(
-        "📲 Para activar notificaciones en iPhone/iPad:\n\n" +
-        "1) Safari → Compartir → 'Agregar a pantalla de inicio'\n" +
-        "2) Abre la app desde el ícono (NO desde Safari)\n" +
-        "3) Vuelve a tocar 'Activar notificaciones'"
-      );
-      return;
-    }
-
-    // 2) Asegurar que el SW esté registrado (EN RAÍZ)
-    // ⚠️ IMPORTANTE: /sw.js debe existir en https://TU-DOMINIO/sw.js
-    const reg = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
-    await navigator.serviceWorker.ready;
-
-    // 3) Permiso (en segundo click ya NO sale popup porque ya está granted)
-    const perm = await Notification.requestPermission();
-    if(perm !== "granted"){
-      showPushModal("❌ No concediste el permiso de notificaciones.");
-      return;
-    }
-
-    // 4) Suscripción push
-    showPushModal("⏳ Creando suscripción push...");
-
-    const readyReg = await navigator.serviceWorker.ready;
-
-    // si ya existe, úsala
-    let sub = await readyReg.pushManager.getSubscription();
-
-    const vapidPublicKey = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
-    const appServerKey = urlBase64ToUint8Array(vapidPublicKey);
-
-    if(!sub){
-      sub = await readyReg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: appServerKey
-      });
-    }
-
-    if(!sub){
-      showPushModal("❌ No se pudo crear la suscripción (sub vacío).");
-      return;
-    }
-
-    const json = sub.toJSON();
-    if(!json?.endpoint || !json?.keys?.p256dh || !json?.keys?.auth){
-      showPushModal("❌ Suscripción incompleta (faltan keys).");
-      return;
-    }
-
-    // 5) Usuario logueado
-    showPushModal("⏳ Guardando en base de datos...");
-
-    const { data: { user }, error: userErr } = await supabaseClient.auth.getUser();
-    if(userErr || !user){
-      showPushModal("❌ No hay sesión. Vuelve a iniciar sesión.");
-      return;
-    }
-
-    // 6) Guardar en tabla
-    // ✅ IMPORTANTE: para upsert con onConflict, tu tabla debe tener UNIQUE(user_id)
-    const payload = {
-      user_id: user.id,
-      endpoint: json.endpoint,
-      p256dh: json.keys.p256dh,
-      auth: json.keys.auth,
-      created_at: new Date().toISOString()
-    };
-
-    const { error } = await supabaseClient
-      .from("push_subscriptions")
-      .upsert(payload, { onConflict: "user_id" });
-
-    if(error){
-      showPushModal("❌ Error guardando en push_subscriptions:\n\n" + error.message);
-      return;
-    }
-
-    showPushModal("✅ Notificaciones activadas y registradas en la tabla.");
-    if(btn) btn.textContent = "✅ Notificaciones activadas";
-
-  } catch(e){
-    showPushModal("❌ Falló activación:\n\n" + (e?.message || e));
-    console.log("enablePushForOwner:", e);
-  } finally {
-    if(btn) btn.disabled = false;
-  }
-}
-
-
-
-
-
-
-// =====================
-// PUSH PARA TODOS (USER/ADMIN/OWNER)
-// =====================
-const VAPID_PUBLIC_KEY = "BIN1OWdYIaLHsghdp42zZBTXwLjHMGfJrd7GjsUpWiO6ujGLHB8M2Vq5QpbqKMQTIGf17BXRCvX7jP4h9JU67AU";
-
-const pushBanner = document.getElementById("pushBanner");
-const pushEnableBtn = document.getElementById("pushEnableBtn");
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
-  return outputArray;
-}
-
-async function hasSubscriptionInDb(userId){
-  // si tienes RLS, asegúrate que el usuario pueda leer su propia subs (policy)
-  const { data, error } = await supabaseClient
-    .from("push_subscriptions")
-    .select("user_id")
-    .eq("user_id", userId)
-    .limit(1);
-
-  if(error){
-    console.log("No pude revisar push_subscriptions:", error);
-    return false;
-  }
-  return (data && data.length > 0);
-}
-
-// muestra banner si falta activar
-async function maybeShowPushBanner(){
-  try{
-    if(!("serviceWorker" in navigator)) return;
-
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) return;
-
-    // iOS/Safari: push requiere PWA instalada
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-    if(!isStandalone){
-      // igual puedes mostrar el banner con el mensaje de "instala la app"
-      pushBanner.style.display = "block";
-      pushEnableBtn.onclick = () => showModal("📲 Para notificaciones en iPhone/iPad: Safari → Compartir → Agregar a pantalla de inicio.");
-      return;
-    }
-
-    const perm = Notification.permission; // "default" | "granted" | "denied"
-    const alreadyInDb = await hasSubscriptionInDb(user.id);
-
-    if(perm !== "granted" || !alreadyInDb){
-      pushBanner.style.display = "block";
-    }else{
-      pushBanner.style.display = "none";
-    }
-  }catch(e){
-    console.log("maybeShowPushBanner error:", e);
-  }
-}
-
-async function enablePushForAllUsers(){
-  try{
-    if(!("serviceWorker" in navigator)){
-      showModal("❌ Este navegador no soporta notificaciones.");
-      return;
-    }
-
-    // iOS/Safari: PWA instalada
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-    if(!isStandalone){
-      showModal("📲 Para activar notificaciones, instala la app: Safari → Compartir → Agregar a pantalla de inicio.");
-      return;
-    }
-
-    // pedir permiso (solo con click)
-    const perm = await Notification.requestPermission();
-    if(perm !== "granted"){
-      showModal("❌ Debes permitir notificaciones.");
-      return;
-    }
-
-    const reg = await navigator.serviceWorker.ready;
-
-    // si había una subs vieja, bórrala
-    const oldSub = await reg.pushManager.getSubscription();
-    if(oldSub) await oldSub.unsubscribe();
-
-    const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: appServerKey
-    });
-
-    const json = sub.toJSON();
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) throw new Error("No hay usuario logueado.");
-
-    // ✅ guarda 1 subs por usuario
-    const { error } = await supabaseClient
-      .from("push_subscriptions")
-      .upsert({
-        user_id: user.id,
-        endpoint: json.endpoint,
-        p256dh: json.keys.p256dh,
-        auth: json.keys.auth,
-        created_at: new Date().toISOString()
-      }, { onConflict: "user_id" });
-
-    if(error){
-      showModal("❌ No se pudo guardar suscripción\n\n" + error.message);
-      return;
-    }
-
-    showModal("✅ Notificaciones activadas");
-    pushBanner.style.display = "none";
-
-  }catch(e){
-    console.log("enablePushForAllUsers error:", e);
-    showModal("❌ Error activando notificaciones\n\n" + (e.message || e));
-  }
-}
-
-// click del banner
-if(pushEnableBtn){
-  pushEnableBtn.onclick = async () => {
+    // Si quieres que este botón haga lo mismo que el modal para todos:
     await enablePushForAllUsers();
   };
 }
-
-
 </script>
 
 </body>
