@@ -1,6 +1,5 @@
-/* sw.js */
+/* service-worker.js */
 
-// (Opcional) cache simple
 const CACHE_NAME = "mrx-cache-v6";
 
 self.addEventListener("install", (event) => {
@@ -15,7 +14,7 @@ self.addEventListener("activate", (event) => {
   })());
 });
 
-// (Opcional) cache de GET
+// Cache simple GET (opcional)
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
@@ -32,36 +31,62 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// ✅ PUSH: aquí se muestra la notificación aunque la app esté cerrada
+// ✅ PUSH (funciona con app cerrada)
 self.addEventListener("push", (event) => {
   let data = {};
+
   try {
     data = event.data ? event.data.json() : {};
-  } catch {
-    data = { title: "Notificación", body: event.data?.text?.() || "" };
+  } catch (e) {
+    data = {
+      title: "MRX",
+      body: event.data ? event.data.text() : "Tienes una nueva notificación",
+    };
   }
 
-  const title = data.title || "MRX";
+  const title = data.title || "MRX • Créditos";
+  const body = data.body || "Has recibido créditos.";
+  const url = data.url || "/";
+
   const options = {
-    body: data.body || "Tienes una nueva notificación",
+    body,
     icon: data.icon || "/apple-touch-icon.png",
     badge: data.badge || "/apple-touch-icon.png",
-    data: {
-      url: data.url || "/",
-    },
+
+    // “Pro” feel
+    tag: data.tag || "mrx-credit",
+    renotify: true,
+    vibrate: [80, 40, 80],
+    timestamp: Date.now(),
+
+    // si quieres que no se vaya sola (Android):
+    // requireInteraction: true,
+
+    data: { url },
+
+    // (Opcional) acciones (Android/desktop)
+    actions: [
+      { action: "open", title: "Abrir" },
+      { action: "close", title: "Cerrar" },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// ✅ Click en notificación
+// ✅ Click / acciones
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+
+  const action = event.action;
+  if (action === "close") return;
+
   const url = event.notification?.data?.url || "/";
 
   event.waitUntil((async () => {
     const allClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
 
+    // si ya hay una pestaña/app abierta, enfócala
     for (const client of allClients) {
       if ("focus" in client) {
         await client.focus();
@@ -70,6 +95,7 @@ self.addEventListener("notificationclick", (event) => {
       }
     }
 
+    // si no, abre una nueva
     if (clients.openWindow) await clients.openWindow(url);
   })());
 });
