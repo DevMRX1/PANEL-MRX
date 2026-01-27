@@ -1,6 +1,6 @@
-/* service-worker.js */
+/* service-worker.js (Android + iOS) */
 
-const CACHE_NAME = "mrx-cache-v6";
+const CACHE_NAME = "mrx-cache-v7"; // 🔁 súbelo cada vez que cambies el SW
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -31,10 +31,9 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// ✅ PUSH (funciona con app cerrada)
+// ✅ PUSH (Android + iOS PWA)
 self.addEventListener("push", (event) => {
   let data = {};
-
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
@@ -44,27 +43,44 @@ self.addEventListener("push", (event) => {
     };
   }
 
-  const title = data.title || "MRX • Créditos";
-  const body = data.body || "Has recibido créditos.";
-  const url = data.url || "/";
+  // Soporta payloads de varios formatos
+  const title = data.title || "MRX";
+  const body = data.body || "Tienes una nueva notificación";
+  const url = data.url || data?.data?.url || "/";
 
+  // ✅ ANDROID:
+  // - icon: iconito pequeño (status/encabezado)
+  // - image: imagen grande (banner grande debajo del texto)
+  // ✅ iOS PWA:
+  // - usa icon/badge (image puede ignorarse)
   const options = {
     body,
-    icon: data.icon || "/apple-touch-icon.png",
-    badge: data.badge || "/apple-touch-icon.png",
 
-    // “Pro” feel
+    // Icono principal (usa tu logo)
+    icon: data.icon || "/icon-192.png",
+
+    // Badge (Android)
+    badge: data.badge || "/icon-192.png",
+
+    // ✅ Imagen grande (como pediste)
+    // Android la muestra como imagen grande (no reemplaza el icono grande)
+    image: data.image || "/fondo.jpg",
+
+    // Agrupación
     tag: data.tag || "mrx-credit",
     renotify: true,
-    vibrate: [80, 40, 80],
+
+    // Vibración (Android)
+    vibrate: Array.isArray(data.vibrate) ? data.vibrate : [80, 40, 80],
     timestamp: Date.now(),
 
-    // si quieres que no se vaya sola (Android):
-    // requireInteraction: true,
+    // Datos para click
+    data: {
+      url,
+      kind: data.kind || data.tag || "mrx",
+    },
 
-    data: { url },
-
-    // (Opcional) acciones (Android/desktop)
+    // Acciones (Android/desktop) – iOS puede ignorarlas
     actions: [
       { action: "open", title: "Abrir" },
       { action: "close", title: "Cerrar" },
@@ -78,24 +94,26 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const action = event.action;
-  if (action === "close") return;
+  if (event.action === "close") return;
 
   const url = event.notification?.data?.url || "/";
 
   event.waitUntil((async () => {
-    const allClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
+    const allClients = await clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    });
 
-    // si ya hay una pestaña/app abierta, enfócala
+    // Si ya hay una pestaña/app abierta, enfócala y navega
     for (const client of allClients) {
-      if ("focus" in client) {
-        await client.focus();
+      try {
+        if ("focus" in client) await client.focus();
         if ("navigate" in client) await client.navigate(url);
         return;
-      }
+      } catch (_) {}
     }
 
-    // si no, abre una nueva
+    // Si no, abre una nueva
     if (clients.openWindow) await clients.openWindow(url);
   })());
 });
