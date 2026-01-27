@@ -808,16 +808,20 @@ async function maybeShowPushBanner(){
     const hideUntil = Number(localStorage.getItem("push_hide_until") || "0");
     if(Date.now() < hideUntil) return;
 
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-    if(!isStandalone){
-      openPushModal("📲 Para notificaciones en iPhone/iPad: Safari → Compartir → Agregar a pantalla de inicio. Luego abre desde el ícono y activa aquí.");
-      return;
-    }
+const isStandalone =
+  window.matchMedia("(display-mode: standalone)").matches ||
+  window.navigator.standalone;
 
-    const perm = Notification.permission;
+// ✅ Solo obligar standalone en iOS
+if (isIOS && !isStandalone){
+  showModal("📲 En iPhone: Safari → Compartir → Agregar a pantalla de inicio...");
+  return;
+}
+
+    if (!("Notification" in window)) return;
+const perm = Notification.permission;
     const alreadyInDb = await hasSubscriptionInDb(user.id);
 
     if(perm !== "granted" || !alreadyInDb){
