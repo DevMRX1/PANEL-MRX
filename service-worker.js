@@ -1,6 +1,6 @@
 /* service-worker.js (Android + iOS) */
 
-const CACHE_NAME = "mrx-cache-v7"; // 🔁 súbelo cada vez que cambies el SW
+const CACHE_NAME = "mrx-cache-v8"; // 🔁 súbelo cada vez que cambies el SW
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -43,44 +43,34 @@ self.addEventListener("push", (event) => {
     };
   }
 
-  // Soporta payloads de varios formatos
   const title = data.title || "MRX";
   const body = data.body || "Tienes una nueva notificación";
   const url = data.url || data?.data?.url || "/";
 
-  // ✅ ANDROID:
-  // - icon: iconito pequeño (status/encabezado)
-  // - image: imagen grande (banner grande debajo del texto)
-  // ✅ iOS PWA:
-  // - usa icon/badge (image puede ignorarse)
   const options = {
     body,
 
-    // Icono principal (usa tu logo)
+    // ✅ Esto es lo único que controlas desde push para “iconos”
+    // En Android: icon = icono pequeño (status bar / encabezado)
+    // En iOS PWA: icon = el que suele verse
     icon: data.icon || "/icon-192.png",
 
-    // Badge (Android)
-    badge: data.badge || "/icon-192.png",
+    // ✅ Badge Android (iconito monocromo/chiquito)
+    badge: data.badge || "/badge-72.png",
 
-    // ✅ Imagen grande (como pediste)
-    // Android la muestra como imagen grande (no reemplaza el icono grande)
-    image: data.image || "/fondo.jpg",
+    // ❌ NO image, porque eso es banner grande
+    // image: ...
 
-    // Agrupación
     tag: data.tag || "mrx-credit",
     renotify: true,
-
-    // Vibración (Android)
     vibrate: Array.isArray(data.vibrate) ? data.vibrate : [80, 40, 80],
     timestamp: Date.now(),
 
-    // Datos para click
     data: {
       url,
       kind: data.kind || data.tag || "mrx",
     },
 
-    // Acciones (Android/desktop) – iOS puede ignorarlas
     actions: [
       { action: "open", title: "Abrir" },
       { action: "close", title: "Cerrar" },
@@ -93,7 +83,6 @@ self.addEventListener("push", (event) => {
 // ✅ Click / acciones
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-
   if (event.action === "close") return;
 
   const url = event.notification?.data?.url || "/";
@@ -104,7 +93,6 @@ self.addEventListener("notificationclick", (event) => {
       includeUncontrolled: true,
     });
 
-    // Si ya hay una pestaña/app abierta, enfócala y navega
     for (const client of allClients) {
       try {
         if ("focus" in client) await client.focus();
@@ -113,7 +101,6 @@ self.addEventListener("notificationclick", (event) => {
       } catch (_) {}
     }
 
-    // Si no, abre una nueva
     if (clients.openWindow) await clients.openWindow(url);
   })());
 });
