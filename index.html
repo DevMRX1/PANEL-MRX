@@ -115,6 +115,10 @@ button{
   color:#fff;
   font-weight:600;
   cursor:pointer;
+
+  /* ✅ CENTRADO REAL */
+  display:block;
+  margin: 10px auto 0;
 }
 button:active{transform:scale(.97)}
 .loader{
@@ -387,6 +391,298 @@ button:active{transform:scale(.97)}
   white-space:pre-line;
   transition:0.2s;
 }
+
+
+
+/* ===== BOTÓN TIENDA (DENTRO DEL PANEL, CENTRADO) ===== */
+.shop-fab{
+  position: static;        /* 👈 ya no es flotante */
+  width: 90%;
+  margin: 14px auto 0;     /* 👈 centrado debajo */
+  z-index: auto;
+
+  display:flex;
+  justify-content:center;  /* 👈 texto al centro */
+  gap:10px;
+  align-items:center;
+
+  padding: 14px;
+  border-radius: 22px;
+  border: none;
+  background: linear-gradient(135deg,#00e0ff,#7b3fe4);
+  color:#fff;
+  font-weight: 900;
+  cursor:pointer;
+  user-select:none;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+.shop-fab:active{ transform: scale(.98); }
+.shop-fab .dot{
+  width:10px;height:10px;border-radius:50%;
+  background: rgba(255,255,255,.9);
+}
+/* ===== OVERLAY TIENDA (FULLSCREEN + BLUR FUERTE) ===== */
+.shopOverlay{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  height: 100vh;
+  z-index: 99999;
+  display:none;
+
+  /* fondo oscuro */
+  background: rgba(0,0,0,.82);
+
+  /* blur fuerte real */
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+.shopOverlay.show{ display:block; }
+
+/* capa extra (por si iOS no blurea perfecto) */
+.shopOverlay::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.55);
+}
+
+/* contenedor del catálogo centrado */
+.shopSheet{
+  position: relative;
+  width: min(96vw, 520px);
+  height: min(86dvh, 760px);
+  margin: calc(env(safe-area-inset-top) + 16px) auto 0;
+  padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 22px;
+
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.10);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  box-shadow: 0 30px 90px rgba(0,0,0,.65);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.shopTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+.shopTitle{
+  font-weight: 900;
+  letter-spacing:.5px;
+  font-size: 18px;
+}
+
+.shopClose{
+  width:44px;height:44px;
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.40);
+  color:#fff;
+  cursor:pointer;
+}
+.shopClose:active{ transform:scale(.98); }
+
+/* ===== CARRUSEL HORIZONTAL ===== */
+.shopRow{
+  flex: 1;
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding: 8px 2px 18px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.shopRow::-webkit-scrollbar{ height:6px; }
+.shopRow::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:10px; }
+
+/* ===== TARJETAS ===== */
+.productCard{
+  flex: 0 0 78%;
+  max-width: 320px;
+
+  scroll-snap-align: center;
+
+  border-radius: 22px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.12);
+
+  overflow: hidden;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,.40);
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 65vh;   /* 👈 en vez de height */
+}
+
+.productImg{
+  width: 100%;
+  height: 190px;              /* ajusta 170-230 a gusto */
+  object-fit: contain;        /* ✅ muestra completa */
+  object-position: center;
+  background: #000;           /* para que no se vea “vacío” */
+  display:block;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.productBody{
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+
+.productFeatures{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+  font-size:12px;
+}
+
+.productFeature{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  color:rgba(255,255,255,.92);
+  line-height:1;
+}
+
+.productFeature::before{
+  content:"✓";
+  font-weight:900;
+  opacity:.9;
+}
+
+
+
+.productContent{
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px;
+}
+
+
+/* Botón siempre visible abajo (sin sticky) */
+.productBtn{
+
+  margin-top: 12px;
+
+  width: 100%;
+  padding: 12px;
+
+  border-radius: 16px;
+  border: 1px solid rgba(255,0,60,.35);
+
+  font-weight: 900;
+  color: #fff;
+  cursor: pointer;
+
+  background: linear-gradient(135deg,#ff003c,#ff2bd6);
+
+  box-shadow:
+    0 0 12px rgba(255,0,60,.55),
+    0 0 30px rgba(255,43,214,.25);
+
+  flex-shrink: 0; /* 🔥 evita que desaparezca */
+
+position: sticky;   /* 👈 se queda fijo */
+  bottom: 0;
+  margin-top: 10px;
+
+}
+
+
+
+
+
+
+.productContent{
+  overscroll-behavior: contain;      /* evita que “jale” el overlay */
+  -webkit-overflow-scrolling: touch;
+}
+
+.shopOverlay{
+  overscroll-behavior: none;         /* corta el rebote del fondo */
+}
+
+
+.productBtn{
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+
+/* ===== ESPACIADO PRODUCTO ===== */
+
+.productName{
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:6px;   /* espacio abajo del título */
+}
+
+.productDesc{
+  font-size:13px;
+  opacity:.85;
+  margin-bottom:12px;  /* espacio antes de las features */
+  line-height:1.4;
+}
+
+
+
+/* ===== META INFO (ENTREGA / SOPORTE) ===== */
+
+.productMeta{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:12px;
+  margin-bottom:14px;
+}
+
+/* Chips tipo botón */
+.productMeta span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:4px 10px;      /* 👈 más pequeño */
+  font-size:10px;       /* 👈 letra más fina */
+  font-weight:600;
+
+  border-radius:999px;
+
+  background:rgba(0,224,255,.10);
+  border:1px solid rgba(0,224,255,.28);
+
+  color:#7ff6ff;
+
+  white-space:nowrap;
+
+  box-shadow:
+    0 0 4px rgba(0,224,255,.25),
+    inset 0 0 4px rgba(0,224,255,.12);
+}
+
 </style>
 </head>
 
@@ -448,10 +744,16 @@ button:active{transform:scale(.97)}
   <div class="console" id="console"></div>
 
   <div class="footer">
-    <b>📲 𝚁𝙴𝙳𝙴𝚂 𝚂𝙾𝙲𝙸𝙰𝙻𝙴𝚂</b>
-    <div class="social" id="socialList"></div>
-  </div>
+  <b>📲 𝚁𝙴𝙳𝙴𝚂 𝚂𝙾𝙲𝙸𝙰𝙻𝙴𝚂</b>
+  <div class="social" id="socialList"></div>
 </div>
+
+<div class="shop-fab" id="openShop">
+  <span class="dot"></span>
+  Tienda
+</div>
+
+</div> <!-- cierre de .panel -->
 
 <!-- MODAL PRINCIPAL -->
 <div class="modal" id="modal">
@@ -550,6 +852,21 @@ button:active{transform:scale(.97)}
     </div>
 
     <button class="menu-close" id="closeMenuBtn">ᴄᴇʀʀᴀʀ</button>
+  </div>
+</div>
+
+
+<!-- ✅ OVERLAY TIENDA -->
+<div class="shopOverlay" id="shopOverlay" aria-hidden="true">
+  <div class="shopSheet">
+    <div class="shopTop">
+      <div class="shopTitle">CATÁLOGO MRX</div>
+      <div class="shopClose" id="closeShop" title="Cerrar">✕</div>
+    </div>
+
+    <div class="shopHint">Desliza a la izquierda/derecha para ver más productos</div>
+
+    <div class="shopRow" id="shopRow"></div>
   </div>
 </div>
 
@@ -1323,6 +1640,141 @@ if (loadEventsBtn) {
     });
   };
 }
+
+
+
+
+
+/* =========================
+   TIENDA: datos + render
+   ========================= */
+const PRODUCTS = [
+  {
+  id: "p1",
+  name: "YAPE FAKE APP",
+  desc: "Paquete Individual.",
+  img: "YapeFake.png",
+  features: [
+  "Disponible en Android y iOS",
+  "Saldo infinito",
+  "Serpentinas al yapear",
+  "Autocompletado por número",
+  "Autocompletado por QR",
+  "Edición de voucher",
+  "Interfaz identica",
+  "Lector de QR",
+  "Actualizaciones automáticas"
+],
+  priceText: "Ver precios",
+  link: "https://wa.me/51955912164?text=Quiero%20Optimización%20Pro"
+},
+  {
+    id: "p2",
+    name: "BCP FAKE APP",
+    desc: "Paquete Individual.",
+    img: "BCPFake.png",
+    features: [
+    "Disponible en Android y iOS",
+    "Saldo infinito",
+    "Edición de voucher",
+    "Interfaz identica",
+    "Actualizaciones automáticas"
+],
+  priceText: "Ver precios",
+  link: "https://wa.me/51955912164?text=Quiero%20Optimización%20Pro"
+},
+  {
+    id: "p3",
+    name: "INTERBANK FAKE APP",
+    desc: "Paquete Individual.",
+    img: "INTERBANKFake.png",
+    features: [
+    "Disponible en Android y iOS",
+    "Saldo infinito",
+    "Edición de voucher",
+    "Interfaz identica",
+    "Actualizaciones automáticas"
+],
+  priceText: "Ver precios",
+  link: "https://wa.me/51955912164?text=Quiero%20Optimización%20Pro"
+},
+];
+
+function renderShop(){
+  const row = document.getElementById("shopRow");
+  if(!row) return;
+
+  row.innerHTML = PRODUCTS.map(p => `
+    <div class="productCard">
+      <img class="productImg" src="${p.img}" alt="${p.name}">
+      <div class="productBody">
+        <div class="productContent">
+          <div class="productName">${p.name}</div>
+          <div class="productDesc">${p.desc}</div>
+
+          <div class="productFeatures">
+            ${(p.features || []).map(f => `<div class="productFeature">${f}</div>`).join("")}
+          </div>
+
+          <div class="productMeta">
+            <span>Entrega: inmediata</span>
+            <span>Soporte: 24 Horas</span>
+          </div>
+        </div>
+
+        <button class="productBtn" data-link="${p.link}">
+          ${p.priceText}
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  row.querySelectorAll(".productBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const link = btn.dataset.link;
+      if(link) window.open(link, "_blank", "noopener");
+    });
+  });
+}
+
+renderShop(); // ✅ AQUÍ
+
+
+
+/* =========================
+   TIENDA: abrir/cerrar
+   ========================= */
+const openShop = document.getElementById("openShop");
+const closeShop = document.getElementById("closeShop");
+const overlay = document.getElementById("shopOverlay");
+
+function lockScroll(lock){
+  document.body.style.overflow = lock ? "hidden" : "";
+}
+
+function showShop(){
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden", "false");
+  lockScroll(true);
+}
+
+function hideShop(){
+  overlay.classList.remove("show");
+  overlay.setAttribute("aria-hidden", "true");
+  lockScroll(false);
+}
+
+openShop?.addEventListener("click", showShop);
+closeShop?.addEventListener("click", hideShop);
+
+overlay?.addEventListener("click", (e)=>{
+  // si tocas fuera de la tarjeta (shopSheet), cierra
+  if (!e.target.closest(".shopSheet")) hideShop();
+});
+
+document.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape" && overlay?.classList.contains("show")) hideShop();
+});
 </script>
 </body>
 </html>
