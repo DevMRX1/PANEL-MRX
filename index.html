@@ -89,30 +89,8 @@ body{
 
   border-radius:30px;
 
-
-/* ===== TITULO PANEL MRX NEON SUAVE ===== */
-.panel-title{
-  text-align:center;
-  margin:0 0 6px;
-
-  font-family: "Poppins", "Inter", system-ui, sans-serif;
-  font-size:26px;
-  font-weight:800;
-  letter-spacing:1.5px;
-
-  color:#fff;
-
-  /* 🔥 Neon BLANCO SUAVE (premium) */
-  text-shadow:
-    0 0 2px rgba(255,255,255,.9),
-    0 0 6px rgba(255,255,255,.6),
-    0 0 12px rgba(255,255,255,.35);
-
-  -webkit-font-smoothing: antialiased;
-}
-
   /* ✅ vidrio oscuro */
-  background: rgba(0,0,0,.70);
+  background: rgba(0,0,0,.48);
 
   /* ✅ blur fuerte + saturación (efecto vidrio) */
   backdrop-filter: blur(22px) saturate(140%);
@@ -128,7 +106,7 @@ body{
     0 25px 70px rgba(0,0,0,.65);
 }
 
-/* ✅ brillo interno tipo “doble marco” (se ve premium) */
+/* ✅ brillo interno tipo “doble marco” */
 .panel::before{
   content:"";
   position:absolute;
@@ -139,7 +117,7 @@ body{
   z-index:0;
 }
 
-/* ✅ grano suave + extra glass (opcional pero queda pro) */
+/* ✅ grano suave + brillo */
 .panel::after{
   content:"";
   position:absolute;
@@ -153,19 +131,98 @@ body{
   z-index:0;
 }
 
-/* ✅ todo el contenido arriba de los pseudo-elementos */
+/* ✅ contenido arriba */
 .panel > *{
   position:relative;
   z-index:1;
 }
+
+/* ===== TITULO PANEL MRX NEON SUAVE ===== */
+.panel-title{
+  text-align:center;
+  margin:0 0 6px;
+
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:1.5px;
+
+  color:#fff;
+
+  /* ✅ neon suave (menos brillante) */
+  text-shadow:
+    0 0 1px rgba(255,255,255,.65),
+    0 0 4px rgba(255,255,255,.35),
+    0 0 8px rgba(255,255,255,.18);
+
+  -webkit-font-smoothing: antialiased;
+}
+  
 h1{text-align:center;margin:0;letter-spacing:1px}
 .subtitle{text-align:center;font-size:12px;opacity:.7;margin-bottom:18px}
 .avatar{display:flex;justify-content:center;margin-bottom:18px}
+
+
+/* ===== AVATAR NEON BLANCO ULTRA POWER ===== */
 .avatar img{
-  width:96px;height:96px;border-radius:50%;
-  border:2px solid #00e0ff;
-  box-shadow:0 0 25px #00e0ff
+  width:96px;
+  height:96px;
+  border-radius:50%;
+
+  border:2px solid rgba(255,255,255,1);
+
+  background:#000;
+  object-fit:cover;
+
+  /* Aura blanca EXTENDIDA */
+  box-shadow:
+    0 0 15px rgba(255,255,255,1),
+    0 0 35px rgba(255,255,255,.95),
+    0 0 70px rgba(255,255,255,.85),
+    0 0 120px rgba(255,255,255,.7),
+    0 0 180px rgba(255,255,255,.45);
+
+  /* Animaciones */
+  animation:
+    avatarPulseWhite 2.2s infinite ease-in-out,
+    avatarFloat 6s infinite ease-in-out;
+
+  transition: all .35s ease;
 }
+
+
+
+/* Pulso blanco */
+@keyframes avatarPulseWhite{
+  0%,100%{
+    transform: scale(1);
+    box-shadow:
+      0 0 12px rgba(255,255,255,1),
+      0 0 28px rgba(255,255,255,.9),
+      0 0 55px rgba(255,255,255,.75),
+      0 0 95px rgba(255,255,255,.6),
+      0 0 150px rgba(255,255,255,.4);
+  }
+
+  50%{
+    transform: scale(1.14);
+    box-shadow:
+      0 0 25px rgba(255,255,255,1),
+      0 0 55px rgba(255,255,255,.95),
+      0 0 100px rgba(255,255,255,.9),
+      0 0 160px rgba(255,255,255,.7),
+      0 0 230px rgba(255,255,255,.5);
+  }
+}
+
+/* Flotación suave */
+@keyframes avatarFloat{
+  0%,100%{ transform: translateY(0) scale(1); }
+  50%{ transform: translateY(-6px) scale(1.06); }
+}
+
+
+
 label{font-size:12px;opacity:.8}
 select,input{
   width:80%;
@@ -890,10 +947,6 @@ position: sticky;   /* 👈 se queda fijo */
 }
 
 
-
-
-
-
 .productContent{
   overscroll-behavior: contain;      /* evita que “jale” el overlay */
   -webkit-overflow-scrolling: touch;
@@ -973,6 +1026,34 @@ position: sticky;   /* 👈 se queda fijo */
     0 0 8px #fff,
     0 0 14px rgba(255,255,255,.8);
 }
+
+
+
+
+/* ===== CYBER CLEAN ===== */
+.panel{
+  animation: cyberPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes cyberPulse{
+  0%,100%{
+    border-color: rgba(255,255,255,.85);
+    box-shadow:
+      0 0 16px rgba(255,255,255,.75),
+      0 0 42px rgba(255,255,255,.18),
+      0 26px 70px rgba(0,0,0,.68);
+  }
+  50%{
+    border-color: rgba(255,255,255,1);
+    box-shadow:
+      0 0 28px rgba(255,255,255,1),
+      0 0 80px rgba(255,255,255,.25),
+      0 26px 80px rgba(0,0,0,.72);
+  }
+}
+
+
+
 </style>
 </head>
 
@@ -1063,6 +1144,7 @@ position: sticky;   /* 👈 se queda fijo */
     <button id="pushModalLaterBtn" style="margin-top:10px;width:100%;background:#333;">
       Ahora no
     </button>
+</button>
   </div>
 </div>
 
@@ -1160,9 +1242,17 @@ position: sticky;   /* 👈 se queda fijo */
   </div>
 </div>
 
-<audio id="okAudio" src="ok.mp3" preload="auto"></audio>
 
 <script>
+
+
+// ✅ iOS FIX: activa audio/voz con el primer toque del usuario
+window.addEventListener("touchstart", () => {
+  speechSynthesis.cancel();
+  speechSynthesis.resume();
+}, { once:true });
+
+
 /* =========================
    LISTAS
    ========================= */
@@ -1222,6 +1312,135 @@ function renderSocial(){
 renderRecharge();
 renderSocial();
 
+
+
+/* ===== TTS: iOS + Voz más humana + estilo coqueta ===== */
+
+let TTS_UNLOCKED = false;
+let VOICE_READY = false;
+let bestVoice = null;
+
+function unlockTTS() {
+  if (TTS_UNLOCKED) return;
+  TTS_UNLOCKED = true;
+
+  try {
+    // Speak mudo (iOS habilita audio)
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+
+    // iOS a veces necesita “resumir”
+    if (speechSynthesis.resume) speechSynthesis.resume();
+
+    // después del primer gesto, carga voces
+    setTimeout(loadVoices, 50);
+    setTimeout(() => speechSynthesis.cancel(), 0);
+  } catch (e) {}
+}
+
+// gesto real (iOS)
+window.addEventListener("touchstart", unlockTTS, { once: true, passive: true });
+window.addEventListener("click", unlockTTS, { once: true });
+
+function scoreVoice(v) {
+  const name = (v.name || "").toLowerCase();
+  const lang = (v.lang || "").toLowerCase();
+
+  let s = 0;
+
+  // Español primero
+  if (lang.startsWith("es")) s += 50;
+  if (lang.includes("es-")) s += 10;
+
+  // Penalizar “compact/old” si existieran
+  if (name.includes("old")) s -= 10;
+
+  // Preferencias típicas (mejoran “calidad” en iOS/Chrome)
+  if (name.includes("siri")) s += 30;
+  if (name.includes("google")) s += 20;
+  if (name.includes("enhanced")) s += 15;
+  if (name.includes("premium")) s += 15;
+  if (name.includes("natural")) s += 15;
+
+  // Muchos iPhone tienen “Monica / Paulina” en algunos casos
+  if (name.includes("monica")) s += 18;
+  if (name.includes("paulina")) s += 18;
+
+  // a veces “female” no sirve, pero sumamos poquito
+  if (name.includes("female") || name.includes("mujer") || name.includes("woman")) s += 5;
+
+  return s;
+}
+
+function loadVoices() {
+  const voices = speechSynthesis.getVoices?.() || [];
+  if (!voices.length) return;
+
+  bestVoice = voices
+    .slice()
+    .sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
+
+  VOICE_READY = true;
+
+  // ✅ DEBUG: listar voces disponibles (solo 1 vez)
+  if (!window.__voicesPrinted) {
+    window.__voicesPrinted = true;
+    console.log("🎙️ Voces disponibles:");
+    console.log(speechSynthesis.getVoices().map(v => `${v.name} — ${v.lang}`));
+  }
+}
+
+// iOS a veces dispara esto tarde
+speechSynthesis.onvoiceschanged = () => loadVoices();
+loadVoices();
+
+function speakBanSexy(number) {
+  // 1) asegurar unlock ANTES de hablar
+  unlockTTS();
+
+  // 2) asegurar voz
+  if (!VOICE_READY) loadVoices();
+
+  // 3) iOS: cancelar/limpiar cola
+  try { speechSynthesis.cancel(); } catch (e) {}
+
+  // Texto (puedes agregar más frases luego)
+  const variants = [
+    `El número ${number} fue baneado con éxito.`,
+  ];
+  const text = variants[Math.floor(Math.random() * variants.length)];
+
+  // ✅ AQUÍ va el truco
+  const msg = new SpeechSynthesisUtterance();
+
+  msg.text = text;
+
+  // ✅ Truco: entonación con pausas (más humana)
+  msg.text = msg.text
+    .replaceAll("…", ", ")
+    .replaceAll(".", "… ");
+
+  // Ajustes de voz
+  msg.lang = "es-ES";
+  msg.rate = 1.00;
+  msg.pitch = 1.18;
+  msg.volume = 1;
+
+  if (bestVoice) msg.voice = bestVoice;
+
+  // Pausita extra (cola vacía)
+  const after = new SpeechSynthesisUtterance(" ");
+  after.volume = 0;
+
+  setTimeout(() => {
+    try {
+      speechSynthesis.speak(msg);
+      speechSynthesis.speak(after);
+    } catch (e) {}
+  }, 120);
+}
 /* ===== SUPABASE ===== */
 const { createClient } = window.supabase;
 
@@ -1652,19 +1871,29 @@ execute.onclick = async () => {
 okBtn.onclick = async () => {
 
   if (step === 10) {
-    if (isProcessing) return;
-    isProcessing = true;
 
-    okBtn.disabled = true;
-    okBtn.textContent = "Procesando...";
+  // ✅ iOS: TTS debe ejecutarse dentro del click real
+  try {
+    unlockTTS();
+    speakBanSexy(lastNumber);   // <-- HABLA AQUÍ (sin await, sin setTimeout)
+  } catch(e) {
+    console.log("TTS pre-speak error:", e);
+  }
 
-    loader.style.display = "block";
-    consoleBox.style.display = "block";
-    consoleBox.innerHTML = "> Procesando...";
+  if (isProcessing) return;
+  isProcessing = true;
 
-    try {
-      const { data: newCredits, error } = await supabaseClient.rpc("consume_credit");
-      if (error) throw error;
+  okBtn.disabled = true;
+  okBtn.textContent = "Procesando...";
+
+  loader.style.display = "block";
+  consoleBox.style.display = "block";
+  consoleBox.innerHTML = "> Procesando...";
+
+  try {
+    const { data: newCredits, error } = await supabaseClient.rpc("consume_credit");
+    if (error) throw error;
+
 
       MY_CREDITS = Number(newCredits || 0);
       document.getElementById("creditsValue").textContent = String(MY_CREDITS);
@@ -1673,7 +1902,10 @@ okBtn.onclick = async () => {
       loader.style.display = "none";
       consoleBox.innerHTML = `> OPERACION COMPLETADA ✅\n`;
 
-      okAudio.play();
+      // ✅ iOS: pequeño delay ayuda bastante
+      setTimeout(() => {
+        try { speakBanSexy(lastNumber); } catch(e) { console.log("TTS speak error:", e); }
+      }, 120);
 
       step = 2;
       modalText.textContent = `✅ ᴏᴘᴇʀᴀᴄɪᴏɴ ᴄᴏᴍᴘʟᴇᴛᴀᴅᴀ\n\n📱 ${lastNumber}\n\n💳 ᴄʀᴇᴅɪᴛᴏs: ${MY_CREDITS}`;
