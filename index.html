@@ -21,6 +21,8 @@
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
 <style>
 /* ✅ iOS: permitir fill-available */
 html{
@@ -68,7 +70,7 @@ body{
   height: 100vh;              /* 👈 clave */
   object-fit: cover;
   object-position: center;    /* 👈 clave */
-  filter: blur(10px);
+  filter: none;
   opacity: .55;
   z-index: -1;
 
@@ -77,14 +79,84 @@ body{
   pointer-events: none;
 }
 .panel{
-  width:90%; max-width:360px;
+  width:90%;
+  max-width:360px;
   padding:26px 22px;
-  border-radius:28px;
-  background:rgba(0,0,0,.22);
-  backdrop-filter:blur(18px);
-  border:1px solid rgba(255,255,255,.12);
+
   position:relative;
-  box-shadow:0 0 60px rgba(0,224,255,.08);
+  isolation:isolate;
+  overflow:hidden;
+
+  border-radius:30px;
+
+
+/* ===== TITULO PANEL MRX NEON SUAVE ===== */
+.panel-title{
+  text-align:center;
+  margin:0 0 6px;
+
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:1.5px;
+
+  color:#fff;
+
+  /* 🔥 Neon BLANCO SUAVE (premium) */
+  text-shadow:
+    0 0 2px rgba(255,255,255,.9),
+    0 0 6px rgba(255,255,255,.6),
+    0 0 12px rgba(255,255,255,.35);
+
+  -webkit-font-smoothing: antialiased;
+}
+
+  /* ✅ vidrio oscuro */
+  background: rgba(0,0,0,.70);
+
+  /* ✅ blur fuerte + saturación (efecto vidrio) */
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+
+  /* ✅ marco blanco neón fuerte */
+  border: 1.5px solid rgba(255,255,255,.9);
+
+  /* ✅ glow exterior */
+  box-shadow:
+    0 0 18px rgba(255,255,255,.85),
+    0 0 45px rgba(255,255,255,.35),
+    0 25px 70px rgba(0,0,0,.65);
+}
+
+/* ✅ brillo interno tipo “doble marco” (se ve premium) */
+.panel::before{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius:28px;
+  border:1px solid rgba(255,255,255,.22);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ✅ grano suave + extra glass (opcional pero queda pro) */
+.panel::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,.10), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(255,255,255,.06), transparent 50%),
+    rgba(0,0,0,.10);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ✅ todo el contenido arriba de los pseudo-elementos */
+.panel > *{
+  position:relative;
+  z-index:1;
 }
 h1{text-align:center;margin:0;letter-spacing:1px}
 .subtitle{text-align:center;font-size:12px;opacity:.7;margin-bottom:18px}
@@ -906,7 +978,7 @@ position: sticky;   /* 👈 se queda fijo */
 
 <body>
 
-<img src="fondo.jpg" id="bgImage">
+<img src="fondo.png" id="bgImage">
 
 <div class="panel">
 
@@ -920,7 +992,7 @@ position: sticky;   /* 👈 se queda fijo */
     <div class="icon-btn" id="menuBtn" title="Menú">≡</div>
   </div>
 
-  <h1>𝐏𝐀𝐍𝐄𝐋 𝐌𝐑𝐗</h1>
+  <h1 class="panel-title">PANEL MRX</h1>
 
   <!-- Créditos arriba -->
   <div id="creditsBox" style="margin-top:6px;text-align:center;font-size:13px;opacity:.85;">
