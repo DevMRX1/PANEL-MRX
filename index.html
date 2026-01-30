@@ -174,24 +174,114 @@ button:active{transform:scale(.97)}
 .social::-webkit-scrollbar{width:6px;}
 .social::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:10px;}
 
-.social-card{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:18px 16px;border-radius:24px;
-  background:rgba(0,0,0,.28);
-  border:1px solid rgba(255,255,255,.10);
-}
-.contact-block{display:flex;align-items:center;gap:14px}
-.icon{
-  width:40px;height:40px;border-radius:50%;
-  display:flex;justify-content:center;align-items:center
-}
-.icon img{width:22px}
-.icon.tg{background:#0088cc}
-.icon.wa{background:#25D366}
-.contact-info{font-size:12px;line-height:1.25}
-.role{font-size:10px;opacity:.6}
-.handle a{color:#fff;text-decoration:none;font-weight:600}
 
+/* ===== SOCIAL CARD FINAL (FIX WHATSAPP) ===== */
+.social-card{
+  position: relative;
+  isolation: isolate;
+
+  display:flex;
+  align-items:center;
+
+  padding:14px 14px;
+  border-radius:22px;
+
+  background: rgba(0,0,0,.72);
+  border:1px solid rgba(255,255,255,.85);
+
+  overflow:hidden;
+  box-shadow: 0 0 10px rgba(255,255,255,.28);
+
+  gap:14px;
+}
+
+/* cada bloque (telegram / whatsapp) */
+.contact-block{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  min-width:0; /* importante para ellipsis */
+}
+
+/* ✅ manda WhatsApp a la derecha SIN separar texto del ícono */
+.contact-block:last-child{
+  margin-left:auto;
+}
+
+/* icon cuadrado ovalado */
+.icon{
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+
+  border-radius:10px;
+  overflow:hidden;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background: rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.5);
+}
+
+.icon img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* ✅ IMPORTANTE: el texto NO debe estirarse (NO flex:1) */
+.contact-info{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+
+  min-width:0;
+  flex:0 1 auto; /* 👈 clave */
+}
+
+/* label */
+.role{
+  font-size:10px;
+  opacity:.9;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* valor */
+.handle{
+  font-size:12px;
+  font-weight:800;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+
+  max-width:140px; /* ajusta si quieres */
+}
+
+/* Quita azul Safari + neon */
+.handle a,
+.handle a:visited,
+.handle a:hover,
+.handle a:active{
+  color:#fff !important;
+  text-decoration:none !important;
+  -webkit-text-fill-color:#fff;
+
+  text-shadow:
+    0 0 4px rgba(255,255,255,.9),
+    0 0 12px rgba(255,255,255,.4);
+}
+
+.handle a{
+  -webkit-tap-highlight-color: transparent;
+}
 /* ===== TOP BAR BUTTONS ===== */
 .top-left, .top-right{
   position:absolute;
@@ -215,6 +305,49 @@ button:active{transform:scale(.97)}
   user-select:none;
 }
 .icon-btn:active{ transform:scale(.97); }
+
+
+/* Evita que el link se ponga azul/morado (iOS Safari) */
+.handle a,
+.handle a:visited,
+.handle a:hover,
+.handle a:active{
+  color:#fff !important;
+  text-decoration:none !important;
+  -webkit-text-fill-color:#fff;     /* ✅ iOS */
+  text-shadow:
+    0 0 4px rgba(255,255,255,.95),
+    0 0 14px rgba(255,255,255,.45);
+}
+
+/* Opcional: quita highlight al tocar */
+.handle a{
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Para que no se rompa el número / user */
+.contact-info{
+  min-width: 0;  /* ✅ importante en flex */
+}
+
+.handle{
+  white-space: nowrap;       /* ✅ una sola línea */
+  overflow: hidden;          /* ✅ si es muy largo, recorta */
+  text-overflow: ellipsis;   /* ✅ ... */
+}
+
+/* Si quieres que el número NUNCA se parta */
+.social-card .contact-block:last-child .handle{
+  white-space: nowrap;
+}
+
+.contact-block{
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-block:first-child{ justify-content:flex-start; }
+.contact-block:last-child{ justify-content:flex-end; }
 
 /* ===== MENU MODAL (HAMBURGER) ===== */
 #menuModal{
@@ -421,6 +554,79 @@ button:active{transform:scale(.97)}
   width:10px;height:10px;border-radius:50%;
   background: rgba(255,255,255,.9);
 }
+
+
+
+
+.shop-fab{
+  position: static;
+  width: 50%;          /* más angosto */
+padding: 10px 12px;  /* menos alto */
+font-size: 14px;     /* texto más fino */
+
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  align-items:center;
+
+  padding: 14px;
+  border-radius: 22px;
+
+  /* 🔥 BORDE BLANCO NEÓN */
+  border: 1px solid rgba(255,255,255,.7);
+
+  /* Fondo oscuro */
+  background: rgba(0,0,0,.65);
+
+  /* 🔥 TEXTO BLANCO NEÓN */
+  color: #fff;
+
+  font-weight:900;
+  cursor:pointer;
+  user-select:none;
+
+  backdrop-filter: blur(14px);
+
+  /* 🔥 EFECTO NEÓN */
+  box-shadow:
+    0 0 6px rgba(255,255,255,.6),
+    0 0 14px rgba(255,255,255,.4),
+    inset 0 0 6px rgba(255,255,255,.25);
+}
+
+/* Animación al tocar */
+.shop-fab:active{
+  transform: scale(.97);
+  box-shadow:
+    0 0 4px rgba(255,255,255,.9),
+    0 0 20px rgba(255,255,255,.7);
+}
+
+.shop-fab:active{
+  transform: scale(.97);
+}
+
+/* ✅ Icono en vez del punto */
+.shopIcon{
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display:block;
+  filter: drop-shadow(0 0 6px rgba(0,224,255,.35));
+}
+
+/* opcional */
+.shopText{
+  line-height: 1;
+}
+
+.shop-icon{
+  width:22px;
+  height:22px;
+  filter: brightness(0) invert(1);
+  drop-shadow: 0 0 6px #00e0ff;
+}
+
 /* ===== OVERLAY TIENDA (FULLSCREEN + BLUR FUERTE) ===== */
 .shopOverlay{
   position: fixed;
@@ -682,6 +888,19 @@ position: sticky;   /* 👈 se queda fijo */
     inset 0 0 4px rgba(0,224,255,.12);
 }
 
+
+
+/* ===== TITULO REDES NEON ===== */
+.neon-title{
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 1px;
+
+  text-shadow:
+    0 0 4px #fff,
+    0 0 8px #fff,
+    0 0 14px rgba(255,255,255,.8);
+}
 </style>
 </head>
 
@@ -743,13 +962,13 @@ position: sticky;   /* 👈 se queda fijo */
   <div class="console" id="console"></div>
 
   <div class="footer">
-  <b>📲 𝚁𝙴𝙳𝙴𝚂 𝚂𝙾𝙲𝙸𝙰𝙻𝙴𝚂</b>
+  <b class="neon-title">📲 REDES SOCIALES</b>
   <div class="social" id="socialList"></div>
 </div>
 
 <div class="shop-fab" id="openShop">
-  <span class="dot"></span>
-  Tienda
+  <img class="shopIcon" src="tienda.png" alt="Tienda">
+  <span class="shopText">Tienda</span>
 </div>
 
 </div> <!-- cierre de .panel -->
