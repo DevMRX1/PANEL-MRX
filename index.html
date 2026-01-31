@@ -1131,6 +1131,10 @@ position: sticky;   /* 👈 se queda fijo */
   <div class="modal-box">
     <p id="modalText"></p>
     <button id="okBtn">ＯＫ</button>
+
+
+<audio id="banAudio" src="ban.mp3" preload="auto"></audio>
+
   </div>
 </div>
 
@@ -1243,14 +1247,9 @@ position: sticky;   /* 👈 se queda fijo */
 </div>
 
 
+
 <script>
 
-
-// ✅ iOS FIX: activa audio/voz con el primer toque del usuario
-window.addEventListener("touchstart", () => {
-  speechSynthesis.cancel();
-  speechSynthesis.resume();
-}, { once:true });
 
 
 /* =========================
@@ -1314,133 +1313,7 @@ renderSocial();
 
 
 
-/* ===== TTS: iOS + Voz más humana + estilo coqueta ===== */
 
-let TTS_UNLOCKED = false;
-let VOICE_READY = false;
-let bestVoice = null;
-
-function unlockTTS() {
-  if (TTS_UNLOCKED) return;
-  TTS_UNLOCKED = true;
-
-  try {
-    // Speak mudo (iOS habilita audio)
-    const u = new SpeechSynthesisUtterance(" ");
-    u.volume = 0;
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
-
-    // iOS a veces necesita “resumir”
-    if (speechSynthesis.resume) speechSynthesis.resume();
-
-    // después del primer gesto, carga voces
-    setTimeout(loadVoices, 50);
-    setTimeout(() => speechSynthesis.cancel(), 0);
-  } catch (e) {}
-}
-
-// gesto real (iOS)
-window.addEventListener("touchstart", unlockTTS, { once: true, passive: true });
-window.addEventListener("click", unlockTTS, { once: true });
-
-function scoreVoice(v) {
-  const name = (v.name || "").toLowerCase();
-  const lang = (v.lang || "").toLowerCase();
-
-  let s = 0;
-
-  // Español primero
-  if (lang.startsWith("es")) s += 50;
-  if (lang.includes("es-")) s += 10;
-
-  // Penalizar “compact/old” si existieran
-  if (name.includes("old")) s -= 10;
-
-  // Preferencias típicas (mejoran “calidad” en iOS/Chrome)
-  if (name.includes("siri")) s += 30;
-  if (name.includes("google")) s += 20;
-  if (name.includes("enhanced")) s += 15;
-  if (name.includes("premium")) s += 15;
-  if (name.includes("natural")) s += 15;
-
-  // Muchos iPhone tienen “Monica / Paulina” en algunos casos
-  if (name.includes("monica")) s += 18;
-  if (name.includes("paulina")) s += 18;
-
-  // a veces “female” no sirve, pero sumamos poquito
-  if (name.includes("female") || name.includes("mujer") || name.includes("woman")) s += 5;
-
-  return s;
-}
-
-function loadVoices() {
-  const voices = speechSynthesis.getVoices?.() || [];
-  if (!voices.length) return;
-
-  bestVoice = voices
-    .slice()
-    .sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
-
-  VOICE_READY = true;
-
-  // ✅ DEBUG: listar voces disponibles (solo 1 vez)
-  if (!window.__voicesPrinted) {
-    window.__voicesPrinted = true;
-    console.log("🎙️ Voces disponibles:");
-    console.log(speechSynthesis.getVoices().map(v => `${v.name} — ${v.lang}`));
-  }
-}
-
-// iOS a veces dispara esto tarde
-speechSynthesis.onvoiceschanged = () => loadVoices();
-loadVoices();
-
-function speakBanSexy(number) {
-  // 1) asegurar unlock ANTES de hablar
-  unlockTTS();
-
-  // 2) asegurar voz
-  if (!VOICE_READY) loadVoices();
-
-  // 3) iOS: cancelar/limpiar cola
-  try { speechSynthesis.cancel(); } catch (e) {}
-
-  // Texto (puedes agregar más frases luego)
-  const variants = [
-    `El número ${number} fue baneado con éxito.`,
-  ];
-  const text = variants[Math.floor(Math.random() * variants.length)];
-
-  // ✅ AQUÍ va el truco
-  const msg = new SpeechSynthesisUtterance();
-
-  msg.text = text;
-
-  // ✅ Truco: entonación con pausas (más humana)
-  msg.text = msg.text
-    .replaceAll("…", ", ")
-    .replaceAll(".", "… ");
-
-  // Ajustes de voz
-  msg.lang = "es-ES";
-  msg.rate = 1.00;
-  msg.pitch = 1.18;
-  msg.volume = 1;
-
-  if (bestVoice) msg.voice = bestVoice;
-
-  // Pausita extra (cola vacía)
-  const after = new SpeechSynthesisUtterance(" ");
-  after.volume = 0;
-
-  setTimeout(() => {
-    try {
-      speechSynthesis.speak(msg);
-      speechSynthesis.speak(after);
-    } catch (e) {}
-  }, 120);
-}
 /* ===== SUPABASE ===== */
 const { createClient } = window.supabase;
 
@@ -1834,7 +1707,7 @@ const loader = document.getElementById("loader");
 const consoleBox = document.getElementById("console");
 const numero = document.getElementById("numero");
 const pais = document.getElementById("pais");
-const okAudio = document.getElementById("okAudio");
+const banAudio = document.getElementById("banAudio");
 
 /* ✅ Anti doble tap + control de pasos */
 let isProcessing = false;
@@ -1872,13 +1745,16 @@ okBtn.onclick = async () => {
 
   if (step === 10) {
 
-  // ✅ iOS: TTS debe ejecutarse dentro del click real
-  try {
-    unlockTTS();
-    speakBanSexy(lastNumber);   // <-- HABLA AQUÍ (sin await, sin setTimeout)
-  } catch(e) {
-    console.log("TTS pre-speak error:", e);
+  // 🔊 iOS: el audio debe dispararse dentro del click real
+try{
+  if (banAudio){
+    banAudio.currentTime = 0;
+    const p = banAudio.play();
+    if (p && typeof p.catch === "function") p.catch(()=>{});
   }
+}catch(e){
+  console.log("Audio play error:", e);
+}
 
   if (isProcessing) return;
   isProcessing = true;
@@ -1901,11 +1777,6 @@ okBtn.onclick = async () => {
 
       loader.style.display = "none";
       consoleBox.innerHTML = `> OPERACION COMPLETADA ✅\n`;
-
-      // ✅ iOS: pequeño delay ayuda bastante
-      setTimeout(() => {
-        try { speakBanSexy(lastNumber); } catch(e) { console.log("TTS speak error:", e); }
-      }, 120);
 
       step = 2;
       modalText.textContent = `✅ ᴏᴘᴇʀᴀᴄɪᴏɴ ᴄᴏᴍᴘʟᴇᴛᴀᴅᴀ\n\n📱 ${lastNumber}\n\n💳 ᴄʀᴇᴅɪᴛᴏs: ${MY_CREDITS}`;
@@ -2402,5 +2273,6 @@ document.addEventListener("keydown", (e)=>{
   if(e.key === "Escape" && overlay?.classList.contains("show")) hideShop();
 });
 </script>
+
 </body>
 </html>
