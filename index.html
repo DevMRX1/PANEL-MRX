@@ -1347,6 +1347,56 @@ position: sticky;   /* 👈 se queda fijo */
   background: rgba(255,255,255,.14);
 }
 
+
+
+/* ===== PUSH MODAL: botones neón blanco ===== */
+#pushModal .modal-box button{
+  -webkit-appearance:none;
+  appearance:none;
+
+  width:100%;
+  min-height:48px;
+  padding:12px 16px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:999px;
+  box-sizing:border-box;
+
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.6px;
+  line-height:1.2;
+
+  /* vidrio */
+  background: rgba(0,0,0,.55) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  /* borde + glow blanco */
+  border:1.5px solid rgba(255,255,255,.75) !important;
+  box-shadow:
+    0 0 8px rgba(255,255,255,.45),
+    0 0 18px rgba(255,255,255,.22),
+    inset 0 0 10px rgba(255,255,255,.10);
+}
+
+#pushModal .modal-box button:active{
+  transform: scale(.97);
+  box-shadow:
+    0 0 10px rgba(255,255,255,.55),
+    0 0 24px rgba(255,255,255,.28),
+    inset 0 0 12px rgba(255,255,255,.14);
+}
+
+/* separación bonita entre los 2 */
+#pushModal #pushModalLaterBtn{ margin-top:10px !important; }
+
+
+
+
 </style>
 </head>
 
@@ -1443,12 +1493,8 @@ position: sticky;   /* 👈 se queda fijo */
 <div class="modal" id="pushModal">
   <div class="modal-box">
     <p id="pushModalText">🔔 Activa notificaciones para recibir avisos de créditos</p>
-    <button id="pushModalEnableBtn" style="width:100%;background:linear-gradient(135deg,#ffaa00,#ff5f00);">
-      Activar notificaciones
-    </button>
-    <button id="pushModalLaterBtn" style="margin-top:10px;width:100%;background:#333;">
-      Ahora no
-    </button>
+    <button id="pushModalEnableBtn">Activar notificaciones</button>
+<button id="pushModalLaterBtn">Ahora no</button>
   </div>
 </div>
 
