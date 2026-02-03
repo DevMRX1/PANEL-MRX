@@ -826,6 +826,7 @@ font-size: 14px;     /* texto más fino */
 }
 
 /* ===== OVERLAY TIENDA (FULLSCREEN + BLUR FUERTE) ===== */
+/* ===== OVERLAY TIENDA (con animación) ===== */
 .shopOverlay{
   position: fixed;
   inset: 0;
@@ -833,18 +834,26 @@ font-size: 14px;     /* texto más fino */
   height: 100dvh;
   height: 100vh;
   z-index: 99999;
-  display:none;
 
-  /* fondo oscuro */
+  /* visible pero “apagado” */
+  display:block;
+  opacity:0;
+  pointer-events:none;
+
   background: rgba(0,0,0,.82);
 
-  /* blur fuerte real */
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-}
-.shopOverlay.show{ display:block; }
 
-/* capa extra (por si iOS no blurea perfecto) */
+  transition: opacity .22s ease;
+}
+
+.shopOverlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* capa oscura extra */
 .shopOverlay::before{
   content:"";
   position:absolute;
@@ -852,7 +861,6 @@ font-size: 14px;     /* texto más fino */
   background: rgba(0,0,0,.55);
 }
 
-/* contenedor del catálogo centrado */
 .shopSheet{
   position: relative;
   width: min(96vw, 520px);
@@ -868,9 +876,21 @@ font-size: 14px;     /* texto más fino */
   -webkit-backdrop-filter: blur(18px);
 
   box-shadow: 0 30px 90px rgba(0,0,0,.65);
+
   display:flex;
   flex-direction:column;
   gap:12px;
+
+  /* ✅ animación base */
+  transform: translateY(16px) scale(.98);
+  opacity: 0;
+  transition: transform .24s ease, opacity .24s ease;
+}
+
+/* ✅ cuando abre */
+.shopOverlay.show .shopSheet{
+  transform: translateY(0) scale(1);
+  opacity: 1;
 }
 
 .shopTop{
@@ -897,40 +917,82 @@ font-size: 14px;     /* texto más fino */
 }
 .shopClose:active{ transform:scale(.98); }
 
-/* ===== CARRUSEL HORIZONTAL ===== */
-.shopRow{
-  flex: 1;
-  display:flex;
-  gap:14px;
-  overflow-x:auto;
-  overflow-y:hidden;
-  padding: 8px 2px 18px;
-  scroll-snap-type: x mandatory;
+/* ✅ viewport: SOLO scroll vertical (fila 1 -> fila 2) */
+.shopViewport{
+  flex: 1;                 /* ocupa TODO el espacio libre */
+  min-height: 0;           /* 🔥 CLAVE en iOS para que no recorte */
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  padding: 8px 2px calc(22px + env(safe-area-inset-bottom)); /* más aire abajo */
 }
+
+
+/* ✅ cada fila: NO vertical, SOLO horizontal */
+.shopRow{
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 6px 2px 12px;
+  margin-bottom: 14px;
+}
+
+/* scrollbars horizontales */
 .shopRow::-webkit-scrollbar{ height:6px; }
-.shopRow::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:10px; }
+.shopRow::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.18);
+  border-radius:10px;
+}
 
-/* ===== TARJETAS ===== */
+/* ✅ track: tira horizontal que contiene 5 tarjetas */
+.shopTrack{
+  display:flex;
+  gap: 14px;
+  width: max-content; /* para que crezca hacia la derecha */
+}
+
+/* ✅ tarjetas: tamaño fijo (NO cambia tamaño) */
 .productCard{
-  flex: 0 0 78%;
-  max-width: 320px;
+  position: relative;          /* ✅ necesario para ::before */
+  box-sizing: border-box;
 
-  scroll-snap-align: center;
+  flex: 0 0 260px;             /* ancho fijo */
+  width: 260px;                /* ✅ asegura fijo */
+  max-width: 260px;
 
   border-radius: 22px;
   background: rgba(0,0,0,.35);
-  border: 1px solid rgba(255,255,255,.12);
 
+  border: none;                /* ✅ quitamos border real */
   overflow: hidden;
 
   box-shadow: 0 20px 60px rgba(0,0,0,.40);
+  display:flex;
+  flex-direction:column;
 
-  display: flex;
-  flex-direction: column;
-
-  min-height: 65vh;   /* 👈 en vez de height */
+  min-height: 360px;           /* tu altura */
 }
+/* ✅ borde neon blanco sin afectar layout */
+.productCard::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:22px;
+  pointer-events:none;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.95),
+    0 0 10px rgba(255,255,255,.35),
+    0 0 22px rgba(255,255,255,.20);
+}
+
+
+/* evita que el overlay principal “rebote” y mueva el body */
+.shopOverlay{ overscroll-behavior: none; }
+
 
 .productImg{
   width: 100%;
@@ -983,36 +1045,25 @@ font-size: 14px;     /* texto más fino */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-right: 6px;
+  max-height: 220px; /* ✅ agrega esto */
 }
 
 
 /* Botón siempre visible abajo (sin sticky) */
 .productBtn{
-
   margin-top: 12px;
-
   width: 100%;
   padding: 12px;
-
   border-radius: 16px;
   border: 1px solid rgba(255,0,60,.35);
-
   font-weight: 900;
   color: #fff;
   cursor: pointer;
-
   background: linear-gradient(135deg,#ff003c,#ff2bd6);
-
   box-shadow:
     0 0 12px rgba(255,0,60,.55),
     0 0 30px rgba(255,43,214,.25);
-
-  flex-shrink: 0; /* 🔥 evita que desaparezca */
-
-position: sticky;   /* 👈 se queda fijo */
-  bottom: 0;
-  margin-top: 10px;
-
+  flex-shrink: 0;
 }
 
 
@@ -1397,6 +1448,399 @@ position: sticky;   /* 👈 se queda fijo */
 
 
 
+/* ✅ TOP RIGHT con 2 botones */
+.top-right{
+  position:absolute;
+  top:12px;
+  right:12px;
+
+  display:flex;
+  flex-direction: column; /* vertical */
+  gap:8px;
+}
+
+/* ✅ Botón ayuda “?” */
+#helpBtn{
+  font-weight:900;
+  font-size:20px;
+  line-height:1;
+}
+
+/* ===== MODAL ADVERTENCIA ===== */
+#welcomeModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:100000; /* arriba de todo */
+}
+
+.welcome-card{
+  position:relative;
+  width:92%;
+  max-width:420px;
+  background:#fff;
+  color:#222;
+  border-radius:22px;
+  padding:22px 18px 18px;
+  box-shadow:0 18px 60px rgba(0,0,0,.35);
+}
+
+.welcome-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:38px;
+  height:38px;
+  border-radius:999px;
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-weight:900;
+  user-select:none;
+  cursor:pointer;
+  opacity:.95;
+}
+
+.welcome-body{
+  text-align:left;
+  font-size:14px;
+  line-height:1.45;
+}
+
+.welcome-title{
+  font-size:30px;
+  font-weight:900;
+  color:#e53935;
+  text-align:center;
+  margin:6px 0 10px;
+}
+
+.welcome-subtitle{
+  text-align:center;
+  font-weight:700;
+  margin-bottom:12px;
+}
+
+.welcome-list{
+  margin:10px 0 12px;
+  padding-left:18px;
+}
+.welcome-list li{ margin:6px 0; }
+
+.tg-link{
+  color:#0088cc;
+  font-weight:900;
+  text-decoration:none;
+}
+.tg-link:active{ opacity:.75; }
+
+.welcome-note{
+  margin-top:10px;
+  font-size:12px;
+  color:#555;
+  opacity:.9;
+  text-align:center;
+}
+
+.welcome-help{
+  margin-top:14px;
+  text-align:center;
+  font-weight:900;
+  color:#0088cc;
+  letter-spacing:.5px;
+}
+
+.welcome-icons{
+  margin-top:12px;
+  display:flex;
+  justify-content:center;
+  gap:14px;
+}
+
+.welcome-icon{
+  width:54px;
+  height:54px;
+  border-radius:14px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border:1px solid rgba(0,0,0,.10);
+  background:#fff;
+  text-decoration:none;
+}
+
+.welcome-icon img{
+  width:26px;
+  height:26px;
+}
+
+
+/* ===== SHOP SHEET NEÓN LIMPIO + ANIMADO ===== */
+.shopSheet{
+  position: relative;
+  border: none;
+  box-sizing: border-box;
+
+  /* 👇 ESTO ES LO QUE LO ALARGA */
+  min-height: 96dvh;
+  max-height: 99dvh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Marco neón */
+.shopSheet::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:22px;
+  pointer-events:none;
+
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255,255,255,.95),
+    0 0 12px rgba(255,255,255,.55),
+    0 0 26px rgba(255,255,255,.32),
+    0 0 50px rgba(255,255,255,.18);
+
+  animation: sheetNeonPulse 2.6s ease-in-out infinite;
+}
+
+/* Pulso */
+@keyframes sheetNeonPulse{
+  0%,100%{
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,.8),
+      0 0 10px rgba(255,255,255,.4),
+      0 0 22px rgba(255,255,255,.25),
+      0 0 42px rgba(255,255,255,.15);
+  }
+
+  50%{
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255,255,255,1),
+      0 0 18px rgba(255,255,255,.7),
+      0 0 40px rgba(255,255,255,.45),
+      0 0 75px rgba(255,255,255,.25);
+  }
+}
+
+
+
+/* ===== SHOP SHEET: fondo oscuro vidrio (no gris) ===== */
+.shopSheet{
+  position: relative;
+  overflow: hidden;              /* ✅ recorta estrellas dentro del sheet */
+  background: rgba(0,0,0,.45) !important;   /* ✅ vuelve oscuro */
+  border: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ⭐ capa de estrellitas DENTRO del sheet (atrás) */
+.shopSheet::after{
+  content:"";
+  position:absolute;
+  inset:-80px;
+  pointer-events:none;
+  z-index:0;
+  opacity:.55;
+
+  background:
+    radial-gradient(circle, rgba(255,255,255,1) 0 1px, transparent 2px) 0 0/70px 70px,
+    radial-gradient(circle, rgba(255,255,255,.85) 0 1px, transparent 2px) 25px 18px/110px 110px,
+    radial-gradient(circle, rgba(255,255,255,.60) 0 1px, transparent 2px) 50px 40px/160px 160px,
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(circle at 75% 35%, rgba(255,255,255,.25), transparent 65%),
+    radial-gradient(circle at 40% 80%, rgba(255,255,255,.30), transparent 70%);
+
+  filter:
+    drop-shadow(0 0 10px rgba(255,255,255,.95))
+    drop-shadow(0 0 30px rgba(255,255,255,.35));
+
+  animation: sheetStars 6s ease-in-out infinite;
+}
+
+/* ✅ todo lo de adentro por encima de las estrellas */
+.shopSheet > *{
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes sheetStars{
+  0%{ opacity:.3; filter: hue-rotate(0deg); }
+  50%{ opacity:1; filter: hue-rotate(40deg); }
+  100%{ opacity:.3; filter: hue-rotate(0deg); }
+}
+
+/* ===== MODAL RECARGA (Premium Glass) ===== */
+#rechargeModal .modal-box{
+  width:min(92vw, 380px);
+  padding:18px 16px 16px;
+  border-radius:22px;
+
+  background: rgba(15,15,18,.55);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.06) inset;
+
+  text-align:left;
+}
+
+/* línea superior suave */
+#rechargeModal .modal-box::before{
+  content:"";
+  display:block;
+  height:1px;
+  width:100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  margin: 6px 0 14px;
+  opacity:.9;
+}
+
+.recharge-title{
+  font-weight:900;
+  font-size:16px;
+  letter-spacing:.2px;
+}
+
+.recharge-sub{
+  margin-top:10px;
+  font-size:12px;
+  opacity:.85;
+}
+
+/* lista */
+.recharge-links{
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* tarjetas contacto */
+.recharge-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:12px 12px;
+  border-radius:16px;
+
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+
+  text-decoration:none;
+  color:#fff;
+
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.recharge-link:active{
+  transform: scale(.99);
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.16);
+}
+
+.recharge-link img{
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+}
+
+.recharge-link b{
+  font-size:14px;
+}
+
+.recharge-link span{
+  font-size:12px;
+  opacity:.85;
+}
+
+.badge-chip{
+  margin-left:auto;
+  font-size:12px;
+  opacity:.8;
+
+  padding:6px 10px;
+  border-radius:999px;
+
+  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+/* botón cerrar */
+#rechargeOk{
+  margin-top:14px;
+  width:100%;
+  padding:12px 14px;
+  border-radius:999px;
+
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.10);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.4px;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+#rechargeOk:active{ transform: scale(.98); }
+
+
+
+/* ===== MENU META ICONS (reemplaza emojis) ===== */
+.menu-meta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+
+  font-size:12px;
+  opacity:.88;
+  margin-top:6px;
+}
+
+.meta-item{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.meta-ico{
+  width:16px;
+  height:16px;
+  object-fit:contain;
+
+  /* si tus imágenes son oscuras, esto las vuelve “blancas” */
+  filter: brightness(0) invert(1)
+          drop-shadow(0 0 6px rgba(255,255,255,.35));
+}
+
+.meta-label{
+  opacity:.85;
+  letter-spacing:.2px;
+}
+
+.meta-dot{
+  opacity:.6;
+}
+
 </style>
 </head>
 
@@ -1413,12 +1857,18 @@ position: sticky;   /* 👈 se queda fijo */
 </div>
   </div>
 
-  <!-- TOP RIGHT: HAMBURGER -->
-  <div class="top-right">
-    <div class="icon-btn" id="menuBtn">
-  <img src="menu.png" class="menu-icon">
-</div>
+ <!-- TOP RIGHT: MENU + HELP -->
+<div class="top-right">
+
+  <!-- Botón Menú (ARRIBA) -->
+  <div class="icon-btn" id="menuBtn" title="Menú">
+    <img src="menu.png" class="menu-icon" alt="Menú">
   </div>
+
+  <!-- Botón Ayuda (ABAJO) -->
+  <div class="icon-btn" id="helpBtn" title="Ayuda">?</div>
+
+</div>
 
   <h1 class="panel-title">PANEL MRX</h1>
 
@@ -1477,6 +1927,44 @@ position: sticky;   /* 👈 se queda fijo */
 
 </div> <!-- cierre de .panel -->
 
+
+<!-- ✅ MODAL ADVERTENCIA (AYUDA) -->
+<div id="welcomeModal">
+  <div class="welcome-card">
+    <div id="welcomeClose" class="welcome-close">✕</div>
+
+    <div class="welcome-body">
+      <div class="welcome-title">¡ADVERTENCIA!</div>
+      <div class="welcome-subtitle">Los únicos autorizados para asignar CREDITOS estan en TELEGRAM son:</div>
+
+      <ul class="welcome-list" id="welcomeUsers"></ul>
+
+      <div class="welcome-note">
+        El registro es TOTALMENTE GRATUITO.
+      </div>
+      <div class="welcome-note">
+        Si alguien te solicita dinero por APK o activación externa, podrías ser víctima de ESTAFA.
+      </div>
+
+      <div class="welcome-help">
+        CUALQUIER DUDA A - 
+        <a class="tg-link" target="_blank" rel="noopener" href="https://t.me/Dev_MRX00">T.ME/Dev_MRX00</a>
+      </div>
+
+      <div class="welcome-icons">
+        <a class="welcome-icon" href="https://t.me/Dev_MRX00" target="_blank" rel="noopener" aria-label="Telegram">
+          <img src="telegram.png" alt="Telegram">
+        </a>
+
+        <a class="welcome-icon" href="https://wa.me/51932792278" target="_blank" rel="noopener" aria-label="WhatsApp">
+          <img src="whatsapp.png" alt="WhatsApp">
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- MODAL PRINCIPAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
@@ -1518,9 +2006,20 @@ position: sticky;   /* 👈 se queda fijo */
   <div class="menu-card">
     <div class="menu-title">MENÚ</div>
 
-    <div style="text-align:center;font-size:12px;opacity:.85;">
-      💳 <b id="menuCredits">0</b> 𝙲𝚛𝚎𝚍𝚒𝚝𝚘𝚜 • 👤 <b id="menuRole">user</b>
-    </div>
+    <div class="menu-meta">
+  <span class="meta-item">
+    <img src="creditos.png" class="meta-ico" alt="">
+    <b id="menuCredits">0</b>
+    <span class="meta-label">Créditos</span>
+  </span>
+
+  <span class="meta-dot">•</span>
+
+  <span class="meta-item">
+    <img src="rol.png" class="meta-ico" alt="">
+    <b id="menuRole">user</b>
+  </span>
+</div>
 
     <div class="hr"></div>
 
@@ -1588,10 +2087,21 @@ position: sticky;   /* 👈 se queda fijo */
 
     <div class="shopHint">Desliza para ver más productos</div>
 
-    <div class="shopRow" id="shopRow"></div>
-  </div>
-</div>
+    <div class="shopViewport" id="shopViewport">
 
+      <!-- FILA 1 (1-5) -->
+      <div class="shopRow" data-row="1">
+        <div class="shopTrack" id="shopRow1"></div>
+      </div>
+
+      <!-- FILA 2 (6-10) -->
+      <div class="shopRow" data-row="2">
+        <div class="shopTrack" id="shopRow2"></div>
+      </div>
+
+    </div> <!-- ✅ cierra shopViewport -->
+  </div>   <!-- ✅ cierra shopSheet -->
+</div>     <!-- ✅ cierra shopOverlay -->
 
 
 <script>
@@ -1656,6 +2166,42 @@ function renderSocial(){
 
 renderRecharge();
 renderSocial();
+
+
+
+/* ===== MODAL ADVERTENCIA (BOTÓN AYUDA) ===== */
+const WELCOME_USERS = ["Dev_MRX00","XAM_OFC","MRX_V2","LaChama5g"];
+
+function renderWelcomeUsers(){
+  const box = document.getElementById("welcomeUsers");
+  if(!box) return;
+
+  box.innerHTML = WELCOME_USERS.map(u => {
+    const username = String(u).replace("@", "");
+    return `<li><a class="tg-link" target="_blank" rel="noopener" href="https://t.me/${username}">@${username}</a></li>`;
+  }).join("");
+}
+
+function openWelcomeModalManual(){
+  const modal = document.getElementById("welcomeModal");
+  const closeBtn = document.getElementById("welcomeClose");
+  if(!modal || !closeBtn) return;
+
+  renderWelcomeUsers();
+  modal.style.display = "flex";
+
+  closeBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+
+  // cerrar tocando afuera
+  modal.onclick = (e) => {
+    if(e.target === modal) modal.style.display = "none";
+  };
+}
+
+// conectar botón ?
+document.getElementById("helpBtn")?.addEventListener("click", openWelcomeModalManual);
 
 
 
@@ -2543,11 +3089,8 @@ const PRODUCTS = [
 
 ];
 
-function renderShop(){
-  const row = document.getElementById("shopRow");
-  if(!row) return;
-
-  row.innerHTML = PRODUCTS.map(p => `
+function cardHtml(p){
+  return `
     <div class="productCard">
       <img class="productImg" src="${p.img}" alt="${p.name}">
       <div class="productBody">
@@ -2570,9 +3113,20 @@ function renderShop(){
         </button>
       </div>
     </div>
-  `).join("");
+  `;
+}
 
-  row.querySelectorAll(".productBtn").forEach(btn=>{
+function renderShop(){
+  const row1 = document.getElementById("shopRow1");
+  const row2 = document.getElementById("shopRow2");
+
+  const first = PRODUCTS.slice(0, 5);   // 1-5
+  const second = PRODUCTS.slice(5, 10); // 6-10
+
+  row1.innerHTML = first.map(cardHtml).join("");
+  row2.innerHTML = second.map(cardHtml).join("");
+
+  document.querySelectorAll(".productBtn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const link = btn.dataset.link;
       if(link) window.open(link, "_blank", "noopener");
@@ -2580,25 +3134,30 @@ function renderShop(){
   });
 }
 
-renderShop(); // ✅ AQUÍ
-
-
 
 /* =========================
    TIENDA: abrir/cerrar
    ========================= */
+
 const openShop = document.getElementById("openShop");
 const closeShop = document.getElementById("closeShop");
 const overlay = document.getElementById("shopOverlay");
+
+let SHOP_RENDERED = false; // 👈 AQUÍ
 
 function lockScroll(lock){
   document.body.style.overflow = lock ? "hidden" : "";
 }
 
-function showShop(){
+function showShop(){       // 👈 REEMPLAZA ESTA
   overlay.classList.add("show");
   overlay.setAttribute("aria-hidden", "false");
   lockScroll(true);
+
+  if(!SHOP_RENDERED){
+    renderShop();
+    SHOP_RENDERED = true;
+  }
 }
 
 function hideShop(){
@@ -2609,15 +3168,6 @@ function hideShop(){
 
 openShop?.addEventListener("click", showShop);
 closeShop?.addEventListener("click", hideShop);
-
-overlay?.addEventListener("click", (e)=>{
-  // si tocas fuera de la tarjeta (shopSheet), cierra
-  if (!e.target.closest(".shopSheet")) hideShop();
-});
-
-document.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape" && overlay?.classList.contains("show")) hideShop();
-});
 </script>
 
 </body>
