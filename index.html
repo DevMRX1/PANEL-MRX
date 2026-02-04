@@ -2233,6 +2233,12 @@ const modal = document.getElementById("modal");
 const modalText = document.getElementById("modalText");
 const okBtn = document.getElementById("okBtn");
 
+function sleep(ms){
+  return new Promise(res => setTimeout(res, ms));
+}
+
+
+
 // ✅ guarda el handler original del OK (para no romper tu step)
 let originalOkHandler = null;
 
@@ -2632,7 +2638,9 @@ execute.onclick = async () => {
 };
 
 /* ✅ 2) OK: SI step=10 -> COBRA 10 VEZ Y MUESTRA COMPLETADO
-      SI step=2 -> CIERRA Y RECARGA */
+      SI step=2 -> CIERRA Y RECARGA 
+
+*/
 okBtn.onclick = async () => {
 
   if (step === 10) {
@@ -2659,20 +2667,26 @@ try{
   consoleBox.innerHTML = "> Procesando...";
 
   try {
-    const { data: newCredits, error } = await supabaseClient.rpc("consume_credit");
-    if (error) throw error;
+  const startedAt = Date.now(); // ✅ empieza a contar al hacer click
 
+  const { data: newCredits, error } = await supabaseClient.rpc("consume_credit");
+  if (error) throw error;
 
-      MY_CREDITS = Number(newCredits || 0);
-      document.getElementById("creditsValue").textContent = String(MY_CREDITS);
-      document.getElementById("menuCredits").textContent = String(MY_CREDITS);
+  // ✅ espera para que el total sea mínimo 5s
+  const elapsed = Date.now() - startedAt;
+  const remaining = Math.max(0, 5000 - elapsed);
+  if (remaining > 0) await sleep(remaining);
 
-      loader.style.display = "none";
-      consoleBox.innerHTML = `> OPERACION COMPLETADA ✅\n`;
+  MY_CREDITS = Number(newCredits || 0);
+  document.getElementById("creditsValue").textContent = String(MY_CREDITS);
+  document.getElementById("menuCredits").textContent = String(MY_CREDITS);
 
-      step = 2;
-      modalText.textContent = `✅ ᴏᴘᴇʀᴀᴄɪᴏɴ ᴄᴏᴍᴘʟᴇᴛᴀᴅᴀ\n\n📱 ${lastNumber}\n\n💳 ᴄʀᴇᴅɪᴛᴏs: ${MY_CREDITS}`;
-      okBtn.textContent = "CERRAR";
+  loader.style.display = "none";
+  consoleBox.innerHTML = `> OPERACION COMPLETADA ✅\n`;
+
+  step = 2;
+  modalText.textContent = `✅ ᴏᴘᴇʀᴀᴄɪᴏɴ ᴄᴏᴍᴘʟᴇᴛᴀᴅᴀ\n\n📱 ${lastNumber}\n\n💳 ᴄʀᴇᴅɪᴛᴏs: ${MY_CREDITS}`;
+  okBtn.textContent = "CERRAR";
 
     } catch (e) {
       loader.style.display = "none";
