@@ -532,7 +532,7 @@ button:active{transform:scale(.96)}
 
     <div class="install-note" id="installNote"></div>
 
-    <button class="install-btn" onclick="needHelp()">Necesito Ayuda</button>
+    <button class="install-btn" onclick="needHelp(event)">Necesito Ayuda</button>
   </div>
 </div>
 
@@ -750,10 +750,15 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pageshow", enforceInstallGate);
 window.addEventListener("focus", enforceInstallGate);
 
-function needHelp(){
-  const url = "https://wa.me/51932792278";
-  const w = window.open(url, "_blank");
-  if(!w) window.location.href = url;
+let openingHelp = false;
+
+function needHelp(e){
+  if(e) { e.preventDefault(); e.stopPropagation(); }
+  if(openingHelp) return;
+  openingHelp = true;
+
+  window.location.href = "https://wa.me/51932792278";
+  setTimeout(() => { openingHelp = false; }, 2000);
 }
 
 </script>
