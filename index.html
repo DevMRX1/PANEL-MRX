@@ -1841,6 +1841,313 @@ font-size: 14px;     /* texto más fino */
   opacity:.6;
 }
 
+
+/* WRAPPER NEON (estilo video) */
+.neon-input{
+  position: relative;
+  width: 80%;
+  height: 48px;
+  margin: 6px auto 14px;
+  border-radius: 18px;
+  padding: 1px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* borde neon girando */
+.neon-input::before{
+  content:"";
+  position:absolute;
+  inset:-45%;
+  background: conic-gradient(
+    from 180deg,
+    rgba(0,224,255,0),
+    rgba(0,224,255,.95),
+    rgba(255,43,214,.95),
+    rgba(255,0,60,.95),
+    rgba(0,224,255,0)
+  );
+  filter: blur(14px);
+  opacity: .85;
+  animation: neonSpin 4s linear infinite;
+  z-index: 0;
+}
+
+@keyframes neonSpin{ to{ transform: rotate(360deg); } }
+
+/* interior oscuro (la “cajita” real) */
+.neon-input::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius: 16px;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1;
+}
+
+/* INPUT */
+.neon-input input{
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+
+  /* ✅ iOS centrado REAL: line-height = height */
+  padding: 0 16px;
+  line-height: 48px;
+
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+
+  font-size: 16px;
+
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* placeholder */
+.neon-input input::placeholder{
+  color: rgba(255,255,255,.60);
+  -webkit-text-fill-color: rgba(255,255,255,.60);
+}
+
+/* quita borde azul cuando enfoca */
+.neon-input input:focus{
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
+
+
+
+/* ===== BOTON NEON (MISMO ESTILO INPUT) ===== */
+
+.neon-btn{
+  position: relative;
+  width: 70%;
+  height: 44px;
+
+  margin: 10px auto 0;
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+/* glow fondo */
+.neon-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+
+  background: linear-gradient(90deg,#00e0ff,#ff2bd6,#ff003c);
+  opacity:.35;
+  filter: blur(12px);
+}
+
+/* capa oscura */
+.neon-btn::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius:999px;
+
+  background: rgba(0,0,0,.6);
+}
+
+/* BOTON REAL */
+.neon-btn button{
+  position: relative;
+  z-index: 2;
+
+  width:100%;
+  height:100%;
+
+  border:0;
+  border-radius:999px;
+
+  background: transparent;
+
+  color:#fff;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:1px;
+
+  cursor:pointer;
+
+  outline:none !important;
+  box-shadow:none !important;
+
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+/* iOS fix */
+.neon-btn button{
+  line-height:44px;
+  text-align:center;
+}
+
+/* al tocar */
+.neon-btn button:active{
+  transform: scale(.96);
+}
+
+/* cuando está disabled */
+.neon-btn button:disabled{
+  opacity:.6;
+  cursor:default;
+}
+
+
+#rechargeOk{
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  width: 100% !important;
+}
+
+
+/* ✅ Cuando un botón está dentro de .neon-btn, anulamos estilos viejos */
+.neon-btn button{
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  border-radius: 999px !important;
+  padding: 0 !important;
+
+  line-height: 44px !important; /* debe coincidir con height de .neon-btn */
+}
+
+/* ✅ En el modal principal, el botón dentro de .neon-btn NO debe tener estilos propios */
+#modal .neon-btn button{
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  border-radius: 999px !important;
+  line-height: 44px !important; /* igual al alto del wrapper */
+  display: block;
+}
+
+/* ✅ Asegura alto fijo del wrapper */
+#modal .neon-btn{
+  height: 44px;
+  width: min(240px, 80%); /* opcional: ancho bonito en modal */
+  margin: 12px auto 0;
+}
+
+.neon-btn::after{
+  border-radius: inherit;
+}
+.neon-btn button{
+  border-radius: inherit;
+}
+
+/* ✅ FIX iOS: que el glow no se vea cuadrado */
+.neon-btn{
+  border-radius: 999px;
+  overflow: hidden;     /* recorta el glow */
+  isolation: isolate;   /* evita mezclas raras de capas */
+}
+
+/* el glow también hereda el radio */
+.neon-btn::before,
+.neon-btn::after{
+  border-radius: inherit;
+}
+
+/* y el botón real igual */
+.neon-btn button{
+  border-radius: inherit;
+}
+
+.neon-btn::before{
+  filter: blur(10px);   /* antes 12px/14px */
+  opacity: .28;         /* un poco menos */
+}
+
+
+/* ✅ FIX iOS definitivo: sin blur (evita el rectángulo) */
+.neon-btn{
+  position: relative;
+  width: min(240px, 80%);
+  height: 44px;
+  margin: 12px auto 0;
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+
+  /* base */
+  background: rgba(0,0,0,.55);
+  border: 1.5px solid rgba(255,255,255,.75);
+
+  /* glow (sin blur) */
+  box-shadow:
+    0 0 10px rgba(255,255,255,.45),
+    0 0 22px rgba(255,255,255,.20),
+    inset 0 0 10px rgba(255,255,255,.10);
+}
+
+/* Quitamos tu glow con blur */
+.neon-btn::before{ content:none !important; }
+
+/* Borde/gradiente fino dentro (sin blur) */
+.neon-btn::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+    rgba(0,224,255,.18),
+    rgba(255,43,214,.16),
+    rgba(255,0,60,.16)
+  );
+  opacity: .9;
+  pointer-events:none;
+}
+
+/* Botón real arriba */
+.neon-btn button{
+  position: relative;
+  z-index: 2;
+  width:100%;
+  height:100%;
+  border:0 !important;
+  border-radius: inherit;
+  background: transparent !important;
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.8px;
+  -webkit-appearance:none;
+  appearance:none;
+  line-height:44px;
+}
+
+
+
+
 </style>
 </head>
 
@@ -1908,7 +2215,9 @@ font-size: 14px;     /* texto más fino */
   </select>
 
   <label>𝙉𝙐𝙈𝙀𝙍𝙊</label>
+  <div class="neon-input">
   <input type="tel" id="numero" placeholder="Ingresa el número" inputmode="numeric">
+</div>
 
   <button id="execute">ＢＡＮＥＡＲ</button>
 
@@ -1969,7 +2278,9 @@ font-size: 14px;     /* texto más fino */
 <div class="modal" id="modal">
   <div class="modal-box">
     <p id="modalText"></p>
-    <button id="okBtn">ＯＫ</button>
+    <div class="neon-btn">
+  <button id="okBtn">ＯＫ</button>
+</div>
 
 
 <audio id="banAudio" src="ban.mp3" preload="auto"></audio>
@@ -1997,7 +2308,9 @@ font-size: 14px;     /* texto más fino */
 
     <div class="recharge-links" id="rechargeList"></div>
 
-    <button id="rechargeOk" style="margin-top:14px;width:100%;">𝐂𝐄𝐑𝐑𝐀𝐑</button>
+    <div class="neon-btn">
+  <button id="rechargeOk">𝐂𝐄𝐑𝐑𝐀𝐑</button>
+</div>
   </div>
 </div>
 
@@ -2706,11 +3019,17 @@ try{
   }
 
   if (step === 2) {
-    modal.classList.remove("show");
-    step = 0;
-    location.reload();
-    return;
-  }
+  modal.classList.remove("show");
+  step = 0;
+
+  // reset UI (sin reload)
+  numero.value = "";
+  consoleBox.style.display = "none";
+  consoleBox.innerHTML = "";
+  loader.style.display = "none";
+
+  return;
+}
 
   modal.classList.remove("show");
   step = 0;
