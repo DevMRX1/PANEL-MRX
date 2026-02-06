@@ -917,139 +917,65 @@ font-size: 14px;     /* texto más fino */
 }
 .shopClose:active{ transform:scale(.98); }
 
-/* ✅ viewport: SOLO scroll vertical (fila 1 -> fila 2) */
+/* ✅ viewport: scroll vertical (para pasar de fila 1 a fila 2) */
 .shopViewport{
-  flex: 1;                 /* ocupa TODO el espacio libre */
-  min-height: 0;           /* 🔥 CLAVE en iOS para que no recorte */
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  padding: 8px 2px calc(22px + env(safe-area-inset-bottom));
   overscroll-behavior: contain;
 
-  padding: 8px 2px calc(22px + env(safe-area-inset-bottom)); /* más aire abajo */
+  touch-action: pan-y; /* ✅ vertical */
 }
 
-
-/* ✅ cada fila: NO vertical, SOLO horizontal */
+/* ✅ cada fila: scroll horizontal (5 cards) */
 .shopRow{
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-
   padding: 6px 2px 12px;
   margin-bottom: 14px;
+
+  touch-action: pan-x; /* ✅ horizontal */
 }
 
-/* scrollbars horizontales */
 .shopRow::-webkit-scrollbar{ height:6px; }
 .shopRow::-webkit-scrollbar-thumb{
   background:rgba(255,255,255,.18);
   border-radius:10px;
 }
 
-/* ✅ track: tira horizontal que contiene 5 tarjetas */
+/* ✅ tira horizontal */
 .shopTrack{
   display:flex;
-  gap: 14px;
-  width: max-content; /* para que crezca hacia la derecha */
+  gap:14px;
+  width:max-content;
 }
 
-/* ✅ tarjetas: tamaño fijo (NO cambia tamaño) */
-.productCard{
-  position: relative;          /* ✅ necesario para ::before */
-  box-sizing: border-box;
-
-  flex: 0 0 260px;             /* ancho fijo */
-  width: 260px;                /* ✅ asegura fijo */
-  max-width: 260px;
-
-  border-radius: 22px;
-  background: rgba(0,0,0,.35);
-
-  border: none;                /* ✅ quitamos border real */
-  overflow: hidden;
-
-  box-shadow: 0 20px 60px rgba(0,0,0,.40);
+/* ✅ body con flex real (clave para scroll interno en iOS) */
+.productBody{
+  flex: 1;
+  min-height: 0;          /* 🔥 CLAVE iOS */
   display:flex;
   flex-direction:column;
-
-  min-height: 360px;           /* tu altura */
-}
-/* ✅ borde neon blanco sin afectar layout */
-.productCard::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:22px;
-  pointer-events:none;
-
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.95),
-    0 0 10px rgba(255,255,255,.35),
-    0 0 22px rgba(255,255,255,.20);
+  padding:14px;
+  overflow:hidden;
 }
 
-
-/* evita que el overlay principal “rebote” y mueva el body */
-.shopOverlay{ overscroll-behavior: none; }
-
-
-.productImg{
-  width: 100%;
-  height: 190px;              /* ajusta 170-230 a gusto */
-  object-fit: contain;        /* ✅ muestra completa */
-  object-position: center;
-  background: #000;           /* para que no se vea “vacío” */
-  display:block;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-.productBody{
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-
-
-.productFeatures{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:8px;
-  font-size:12px;
-}
-
-.productFeature{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:8px 10px;
-  border-radius:999px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.10);
-  color:rgba(255,255,255,.92);
-  line-height:1;
-}
-
-.productFeature::before{
-  content:"✓";
-  font-weight:900;
-  opacity:.9;
-}
-
-
+/* ✅ SOLO el texto/features scrollea hacia abajo */
 .productContent{
   flex: 1;
+  min-height: 0;          /* 🔥 CLAVE iOS */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-right: 6px;
-  max-height: 220px; /* ✅ agrega esto */
+
+  overscroll-behavior: contain;
 }
 
-
-/* Botón siempre visible abajo (sin sticky) */
+/* botón bonito abajo (sin cambiarlo feo) */
 .productBtn{
   margin-top: 12px;
   width: 100%;
@@ -1067,18 +993,97 @@ font-size: 14px;     /* texto más fino */
 }
 
 
-.productContent{
-  overscroll-behavior: contain;      /* evita que “jale” el overlay */
-  -webkit-overflow-scrolling: touch;
+/* ===== PRODUCT CARD: BORDE BLANCO NEÓN (SIN FONDO BLANCO) ===== */
+.productCard::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:24px;
+  pointer-events:none;
+
+  z-index:0;
+  opacity:.85;
+
+  /* ✅ glow controlado (sin aura gigante que blanquea el fondo) */
+  box-shadow:
+    inset 0 0 0 1.6px rgba(255,255,255,1),  /* borde */
+    0 0 10px rgba(255,255,255,.55),         /* glow cerca */
+    0 0 22px rgba(255,255,255,.25);         /* glow medio */
+
+  animation: whiteNeonPulse 2.3s ease-in-out infinite;
 }
 
-.shopOverlay{
-  overscroll-behavior: none;         /* corta el rebote del fondo */
+@keyframes whiteNeonPulse{
+  0%,100%{ opacity:.78; }
+  50%{ opacity:1; }
 }
 
+/* ====== PRODUCT CARD: TAMAÑO FINAL (ÚNICO) ====== */
+.productCard{
+  position: relative;
 
-.productBtn{
-  margin-bottom: env(safe-area-inset-bottom);
+  flex: 0 0 260px;
+  width: 260px;
+  max-width: 260px;
+
+  height: 500px;   /* ajusta aquí la altura */
+
+  border-radius: 22px;
+  background: rgba(0,0,0,.35);
+
+  overflow: visible;   /* 🔥 CLAVE: deja salir el glow */
+
+  display:flex;
+  flex-direction:column;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,.40);
+}
+
+/* ✅ FIX FINAL: NO RECORTE DE IMAGEN */
+.productImage{
+  border-radius: 22px 22px 0 0;
+  overflow: hidden;
+}
+
+.productImg{
+  width: 100% !important;
+  height: 200px !important;      /* ajusta 180/200/220 si quieres */
+  object-fit: contain !important;/* ✅ NO recorta */
+  background: #000 !important;   /* relleno */
+  display: block;
+}
+
+/* ✅ neón detrás, sin tapar contenido */
+.productCard::before{
+  z-index: 0;
+}
+
+.productCard{
+  position: relative;
+}
+
+.productFrame{
+  position: relative;
+  z-index: 1;             /* contenido arriba del glow */
+  border-radius: 22px;
+  overflow: hidden;       /* ✅ recorta todo el contenido (NO el glow) */
+  background: rgba(0,0,0,.35);
+  height: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ✅ SOLO recorte de imagen */
+.productImage{
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.productImg{
+  width: 100%;
+  height: 160px;          /* ajusta si quieres */
+  object-fit: cover;
+  display:block;
 }
 
 
@@ -1135,6 +1140,33 @@ font-size: 14px;     /* texto más fino */
 
 
 
+
+.productFeatures{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+  font-size:12px;
+}
+
+.productFeature{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  color:rgba(255,255,255,.92);
+  line-height:1;
+}
+
+.productFeature::before{
+  content:"✓";
+  font-weight:900;
+  opacity:.9;
+}
+
 /* ===== TITULO REDES NEON ===== */
 .neon-title{
   color: #fff;
@@ -1148,7 +1180,23 @@ font-size: 14px;     /* texto más fino */
 }
 
 
+/* ✅ SOLO scroll vertical dentro del contenido */
+.productContent{
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;              /* 🔥 no lateral */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;             /* 🔥 solo arriba/abajo */
+}
 
+/* ✅ por si alguna “pastilla” o texto se sale */
+.productFeatures,
+.productName,
+.productDesc{
+  overflow-x: hidden;
+}
 
 /* ===== CYBER CLEAN ===== */
 .panel{
@@ -2146,7 +2194,15 @@ font-size: 14px;     /* texto más fino */
 }
 
 
+/* ✅ scroll vertical en toda la tienda */
+.shopViewport{
+  touch-action: pan-y;
+}
 
+/* ✅ en las filas permite horizontal PERO también deja que el vertical pase al viewport */
+.shopRow{
+  touch-action: pan-x pan-y;
+}
 
 </style>
 </head>
@@ -2585,10 +2641,15 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* FIX ZOOM iOS */
-document.addEventListener('gesturestart', e => e.preventDefault());
-document.addEventListener('touchmove', e => {
-  if(e.scale !== 1) e.preventDefault();
-},{ passive:false });
+
+// iOS: bloquea el gesto de zoom
+document.addEventListener("gesturestart", (e) => e.preventDefault());
+
+// Android/iOS: bloquea SOLO pinch (2 dedos), deja scroll normal
+document.addEventListener("touchmove", (e) => {
+  if (e.touches && e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
 
 /* ===== PROFILE: credits/role ===== */
 let MY_ROLE = "user";
@@ -3425,25 +3486,30 @@ const PRODUCTS = [
 function cardHtml(p){
   return `
     <div class="productCard">
-      <img class="productImg" src="${p.img}" alt="${p.name}">
-      <div class="productBody">
-        <div class="productContent">
-          <div class="productName">${p.name}</div>
-          <div class="productDesc">${p.desc}</div>
-
-          <div class="productFeatures">
-            ${(p.features || []).map(f => `<div class="productFeature">${f}</div>`).join("")}
-          </div>
-
-          <div class="productMeta">
-            <span>Entrega: inmediata</span>
-            <span>Soporte: 24 Horas</span>
-          </div>
+      <div class="productFrame">
+        <div class="productImage">
+          <img class="productImg" src="${p.img}" alt="${p.name}">
         </div>
 
-        <button class="productBtn" data-link="${p.link}">
-          ${p.priceText}
-        </button>
+        <div class="productBody">
+          <div class="productContent">
+            <div class="productName">${p.name}</div>
+            <div class="productDesc">${p.desc}</div>
+
+            <div class="productFeatures">
+              ${(p.features || []).map(f => `<div class="productFeature">${f}</div>`).join("")}
+            </div>
+
+            <div class="productMeta">
+              <span>Entrega: inmediata</span>
+              <span>Soporte: 24 Horas</span>
+            </div>
+          </div>
+
+          <button class="productBtn" data-link="${p.link}">
+            ${p.priceText}
+          </button>
+        </div>
       </div>
     </div>
   `;
